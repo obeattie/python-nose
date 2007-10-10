@@ -13,8 +13,8 @@ current = os.getcwd()
 version = nose.__version__
 here = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 parts = here.split('/')
-branch = parts.index('branches')
-svnroot = os.path.join('/', *parts[:branch])
+branchindex = parts.index('branches')
+svnroot = os.path.join('/', *parts[:branchindex])
 branchroot = os.path.join(svnroot, 'branches')
 tagroot = os.path.join(svnroot, 'tags')
 svntrunk = os.path.join(svnroot, 'trunk')
@@ -51,7 +51,7 @@ def main():
             % tag)
 
     # make branch, if needed
-    if not os.path.isdir(branch):
+    if not os.path.isdir(os.path.join(svnroot, branch)):
         # update trunk
         cd(svntrunk)
         runcmd('svn up')
@@ -72,7 +72,6 @@ def main():
         # re-releasing branch
         cd(branch)
         runcmd('svn up')
-        cd(svnroot)
 
     # make tag from branch
     cd(svnroot)
@@ -101,8 +100,8 @@ def main():
             'path': up[up.index(':')+1:],
             'version':version,
             'upload': up,
-            'upload_docs': "%s%s" % (up, version) }
-        cv['versionpath'] = "%(path)s%(version)s" % cv
+            'upload_docs': "%s/%s" % (up, version) }
+        cv['versionpath'] = "%(path)s/%(version)s" % cv
         cv['docpath'] = "%(versionpath)s/doc" % cv
 
         cmd = 'scp -C dist/nose-%(version)s.tar.gz %(upload)s' % cv
