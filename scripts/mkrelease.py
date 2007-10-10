@@ -89,6 +89,8 @@ def main():
     runcmd('scripts/mkdocs.py')
     runcmd('scripts/mkwiki.py')
 
+    # FIXME need to do this from an *export* to limit files included
+    # (setuptools includes too many files when run under a checkout)
     # setup sdist
     runcmd('python setup.py sdist')
 

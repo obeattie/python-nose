@@ -1,11 +1,11 @@
 include AUTHORS
-include ez_setup.py
-include unit_tests/*/*.py
-include unit_tests/*/*/*.py
-include unit_tests/*/*/*/*.py
-include unit_tests/*/*/*/*/*.py
 include CHANGELOG
 include NEWS
 include README.txt
 include lgpl.txt
 include nosetests.1
+include install-rpm.sh
+include bin/nosetests
+graft doc
+graft unit_tests
+graft functional_tests
