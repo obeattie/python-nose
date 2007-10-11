@@ -7,5 +7,6 @@ include nosetests.1
 include install-rpm.sh
 include bin/nosetests
 graft doc
+graft examples
 graft unit_tests
 graft functional_tests
