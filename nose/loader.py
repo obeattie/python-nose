@@ -277,31 +277,42 @@ class TestLoader(unittest.TestLoader):
         return module
     
     def loadTestsFromAST(self, addr):
-        log.debug("load from AST")
         
         ######### the old way :
         # if addr.filename is None:
         #     module = resolve_name(addr.module)
         # else:
-        #     # self.config.plugins.beforeImport(
-        #     #     addr.filename, addr.module)
-        #     # try:
-        #     module = self.importer.importFromPath(
-        #         addr.filename, addr.module)
-        #     # finally:
-        #     #     self.config.plugins.afterImport(
-        #     #         addr.filename, addr.module)
+        #     try:
+        #         self.config.plugins.beforeImport(
+        #             addr.filename, addr.module)
+        #         try:
+        #             module = self.importer.importFromPath(
+        #                 addr.filename, addr.module)
+        #         finally:
+        #             self.config.plugins.afterImport(
+        #                 addr.filename, addr.module)
+        #     except (KeyboardInterrupt, SystemExit):
+        #         raise
+        #     except:
+        #         exc = sys.exc_info()
+        #         return suite([Failure(*exc)])
+        #     
         # return self.loadTestsFromModule(module)
         
         tests = []
         test_classes = []
         test_funcs = []
+        if op_isdir(addr.filename):
+            ## FIXME: what do we do about tests/fixtures in __init__.py?
+            return LazySuite(
+                    lambda: self.loadTestsFromDir(addr.filename))
+                    
+        log.debug("load from AST %s", addr.filename)
         tree = ast.parseFile(addr.filename)
         module = None
         def objectFromNode(module, node):
             # need to parse node.lineage ...
             return getattr(module, node.name)
-        # log.debug(tree.functions)
         for node in tree.classes:
             if self.selector.wantClass(node.name):
                 if not module:
@@ -406,28 +417,8 @@ class TestLoader(unittest.TestLoader):
                                      context=parent))
         else:
             if addr.module:
-                # try:
-                #     if addr.filename is None:
-                #         module = resolve_name(addr.module)
-                #     else:
-                #         self.config.plugins.beforeImport(
-                #             addr.filename, addr.module)
-                #         # FIXME: to support module.name names,
-                #         # do what resolve-name does and keep trying to
-                #         # import, popping tail of module into addr.call,
-                #         # until we either get an import or run out of
-                #         # module parts
-                #         try:
-                #             module = self.importer.importFromPath(
-                #                 addr.filename, addr.module)
-                #         finally:
-                #             self.config.plugins.afterImport(
-                #                 addr.filename, addr.module)
-                # except (KeyboardInterrupt, SystemExit):
-                #     raise
-                # except:
-                #     exc = sys.exc_info()
-                #     return suite([Failure(*exc)])
+                #### all this moved to load from ast ...
+                
                 # if addr.call:
                 #     return self.loadTestsFromName(addr.call, module)
                 # else:
