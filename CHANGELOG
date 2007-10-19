@@ -1,3 +1,11 @@
+0.10.1
+
+- Fixed bug in capture plugin that caused it to record captured output
+  on the test in the wrong attribute (#113).
+- Fixed bug in result proxy that caused tests to fail if they accessed
+  certain result attibutes directly (#114). Thanks to Neilen Marais
+  for the bug report.
+
 0.10.0
 
 - Fixed bug that broke plugins with names containing underscores or
