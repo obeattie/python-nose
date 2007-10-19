@@ -56,7 +56,7 @@ class Capture(Plugin):
         self.start()
         
     def formatError(self, test, err):
-        test.captured_output = output = self.buffer
+        test.capturedOutput = output = self.buffer
         self._buf = None
         if not output:
             return
