@@ -17,9 +17,9 @@ class ModuleVisitor(object):
             # visit = ASTVisitor.dispatch
             self.visit(child, node.lineage + [node])
             
-    def visitModule(self, node, lineage=[]):
+    def visitModule(self, node):
         node.name = self.filename
-        node.lineage = lineage
+        node.lineage = []
         # descend into classes and functions
         self.default(node)
         
@@ -33,14 +33,16 @@ class ModuleVisitor(object):
         node.lineage = lineage
         self.functions.append(node)
 
-if __name__ == '__main__':
-    ast = compiler.parseFile(__file__)
-    modnode = ModuleVisitor(__file__)
+def parseFile(filename):
+    ast = compiler.parseFile(filename)
+    modnode = ModuleVisitor(filename)
     visitor.walk(ast, modnode)
-    def _name(n):
-        return n.name
-    pprint([(n.name, n.lineno, [_name(p) for p in n.lineage]) 
+    return modnode
+
+if __name__ == '__main__':
+    modnode = parseFile(__file__)
+    pprint([(n.name, n.lineno, [p.name for p in n.lineage]) 
             for n in modnode.classes])
-    pprint([(n.name, n.lineno, [_name(p) for p in n.lineage]) 
+    pprint([(n.name, n.lineno, [p.name for p in n.lineage]) 
             for n in modnode.functions])
             

@@ -20,6 +20,7 @@ from nose.selector import defaultSelector, TestAddress
 from nose.util import cmp_lineno, getpackage, isclass, isgenerator, ispackage, \
     match_last, resolve_name
 from nose.suite import ContextSuiteFactory, ContextList, LazySuite
+from nose import ast
 
 log = logging.getLogger(__name__)
 #log.setLevel(logging.DEBUG)
@@ -260,6 +261,66 @@ class TestLoader(unittest.TestLoader):
                     yield Failure(TypeError,
                                   "%s is not a function or method" % test_func)
         return self.suiteClass(generate)
+        
+    def fetchModuleFromAddr(self, addr):
+        if addr.filename is None:
+            module = resolve_name(addr.module)
+        else:
+            self.config.plugins.beforeImport(
+                addr.filename, addr.module)
+            try:
+                module = self.importer.importFromPath(
+                    addr.filename, addr.module)
+            finally:
+                self.config.plugins.afterImport(
+                    addr.filename, addr.module)
+        return module
+    
+    def loadTestsFromAST(self, addr):
+        log.debug("load from AST")
+        
+        ######### the old way :
+        # if addr.filename is None:
+        #     module = resolve_name(addr.module)
+        # else:
+        #     # self.config.plugins.beforeImport(
+        #     #     addr.filename, addr.module)
+        #     # try:
+        #     module = self.importer.importFromPath(
+        #         addr.filename, addr.module)
+        #     # finally:
+        #     #     self.config.plugins.afterImport(
+        #     #         addr.filename, addr.module)
+        # return self.loadTestsFromModule(module)
+        
+        tests = []
+        test_classes = []
+        test_funcs = []
+        tree = ast.parseFile(addr.filename)
+        module = None
+        def objectFromNode(module, node):
+            # need to parse node.lineage ...
+            return getattr(module, node.name)
+        # log.debug(tree.functions)
+        for node in tree.classes:
+            if self.selector.wantClass(node.name):
+                if not module:
+                    module = self.fetchModuleFromAddr(addr)
+                test_classes.append(objectFromNode(module, node))
+        for node in tree.functions:
+            if self.selector.wantFunction(node.name):
+                if not module:
+                    module = self.fetchModuleFromAddr(addr)
+                test_funcs.append(objectFromNode(module, node))
+        if module:
+            test_classes.sort(lambda a, b: cmp(a.__name__, b.__name__))
+            ## NOTE: this might be faster if we use node.lineno
+            test_funcs.sort(cmp_lineno)
+            tests = map(lambda t: self.makeTest(t, parent=module),
+                        test_classes + test_funcs)
+                    
+        # module could be None...
+        return self.suiteClass(ContextList(tests, context=module))
 
     def loadTestsFromModule(self, module, discovered=False):
         """Load all tests from module and return a suite containing
@@ -345,33 +406,37 @@ class TestLoader(unittest.TestLoader):
                                      context=parent))
         else:
             if addr.module:
-                try:
-                    if addr.filename is None:
-                        module = resolve_name(addr.module)
-                    else:
-                        self.config.plugins.beforeImport(
-                            addr.filename, addr.module)
-                        # FIXME: to support module.name names,
-                        # do what resolve-name does and keep trying to
-                        # import, popping tail of module into addr.call,
-                        # until we either get an import or run out of
-                        # module parts
-                        try:
-                            module = self.importer.importFromPath(
-                                addr.filename, addr.module)
-                        finally:
-                            self.config.plugins.afterImport(
-                                addr.filename, addr.module)
-                except (KeyboardInterrupt, SystemExit):
-                    raise
-                except:
-                    exc = sys.exc_info()
-                    return suite([Failure(*exc)])
+                # try:
+                #     if addr.filename is None:
+                #         module = resolve_name(addr.module)
+                #     else:
+                #         self.config.plugins.beforeImport(
+                #             addr.filename, addr.module)
+                #         # FIXME: to support module.name names,
+                #         # do what resolve-name does and keep trying to
+                #         # import, popping tail of module into addr.call,
+                #         # until we either get an import or run out of
+                #         # module parts
+                #         try:
+                #             module = self.importer.importFromPath(
+                #                 addr.filename, addr.module)
+                #         finally:
+                #             self.config.plugins.afterImport(
+                #                 addr.filename, addr.module)
+                # except (KeyboardInterrupt, SystemExit):
+                #     raise
+                # except:
+                #     exc = sys.exc_info()
+                #     return suite([Failure(*exc)])
+                # if addr.call:
+                #     return self.loadTestsFromName(addr.call, module)
+                # else:
+                #     return self.loadTestsFromModule(
+                #         module, discovered=discovered)
                 if addr.call:
-                    return self.loadTestsFromName(addr.call, module)
+                    raise NotImplementedError
                 else:
-                    return self.loadTestsFromModule(
-                        module, discovered=discovered)
+                    return self.loadTestsFromAST(addr)
             elif addr.filename:
                 path = addr.filename
                 if addr.call:

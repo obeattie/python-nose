@@ -65,19 +65,25 @@ class Selector(object):
         A class must be a unittest.TestCase subclass, or match test name
         requirements. Classes that start with _ are always excluded.
         """
+        if isinstance(cls, basestring):
+            name = cls
+        else:
+            name = cls.__name__
         declared = getattr(cls, '__test__', None)
         if declared is not None:
             wanted = declared
         else:
-            wanted = (not cls.__name__.startswith('_')
-                      and (issubclass(cls, unittest.TestCase)
-                           or self.matches(cls.__name__)))
+            #### FIXME : handle unittest subclasses when using AST
+            wanted = (not name.startswith('_')
+                      # and (issubclass(cls, unittest.TestCase)
+                      and (False # placeholder until this is implemented
+                           or self.matches(name)))
         
-        plug_wants = self.plugins.wantClass(cls)        
-        if plug_wants is not None:
-            log.debug("Plugin setting selection of %s to %s", cls, plug_wants)
-            wanted = plug_wants
-        log.debug("wantClass %s? %s", cls, wanted)
+        # plug_wants = self.plugins.wantClass(cls)        
+        # if plug_wants is not None:
+        #     log.debug("Plugin setting selection of %s to %s", cls, plug_wants)
+        #     wanted = plug_wants
+        log.debug("wantClass %s? %s (cls=%s)", name, wanted, cls)
         return wanted
 
     def wantDirectory(self, dirname):
@@ -138,23 +144,26 @@ class Selector(object):
     def wantFunction(self, function):
         """Is the function a test function?
         """
-        try:
-            if hasattr(function, 'compat_func_name'):
-                funcname = function.compat_func_name
-            else:
-                funcname = function.__name__
-        except AttributeError:
-            # not a function
-            return False
+        if isinstance(function, basestring):
+            funcname = function
+        else:
+            try:
+                if hasattr(function, 'compat_func_name'):
+                    funcname = function.compat_func_name
+                else:
+                    funcname = function.__name__
+            except AttributeError:
+                # not a function
+                return False
         declared = getattr(function, '__test__', None)
         if declared is not None:
             wanted = declared
         else:
             wanted = not funcname.startswith('_') and self.matches(funcname)
-        plug_wants = self.plugins.wantFunction(function)
-        if plug_wants is not None:
-            wanted = plug_wants
-        log.debug("wantFunction %s? %s", function, wanted)
+        # plug_wants = self.plugins.wantFunction(function)
+        # if plug_wants is not None:
+        #     wanted = plug_wants
+        log.debug("wantFunction %s? %s (function=%s)", funcname, wanted, function)
         return wanted
 
     def wantMethod(self, method):
