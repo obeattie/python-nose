@@ -277,6 +277,7 @@ class TestLoader(unittest.TestLoader):
         return module
     
     def loadTestsFromAST(self, addr):
+        suite = self.suiteClass
         
         ######### the old way :
         # if addr.filename is None:
