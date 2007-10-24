@@ -59,7 +59,10 @@ class Capture(Plugin):
         test.capturedOutput = output = self.buffer
         self._buf = None
         if not output:
-            return
+            # Don't return None as that will prevent other
+            # formatters from formatting and remove earlier formatters
+            # formats, instead return the err we got
+            return err 
         ec, ev, tb = err
         return (ec, self.addCaptureToErr(ev, output), tb)
 

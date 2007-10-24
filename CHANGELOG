@@ -5,6 +5,9 @@
 - Fixed bug in result proxy that caused tests to fail if they accessed
   certain result attibutes directly (#114). Thanks to Neilen Marais
   for the bug report.
+- Fixed bug in capture plugin that cause other error formatters
+  changes to be lost if no output was captured (#124). Thanks to
+  someone at ilorentz.org for the bug report.
 
 0.10.0
 
