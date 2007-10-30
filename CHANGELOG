@@ -8,6 +8,10 @@
 - Fixed bug in capture plugin that cause other error formatters
   changes to be lost if no output was captured (#124). Thanks to
   someone at ilorentz.org for the bug report.
+- Fixed several bugs in the nosetests setup command that made some
+  options unusable and the command itself unusable when no options
+  were set (#125, #126, #128). Thanks to Alain Poirier for the bug
+  reports.
 
 0.10.0
 
