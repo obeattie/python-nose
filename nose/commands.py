@@ -59,7 +59,7 @@ else:
             if opt._long_opts[0][2:] in option_blacklist: 
                 continue
             long_name = opt._long_opts[0][2:]
-            if opt.action != 'store_true':
+            if opt.action not in ('store_true', 'store_false'):
                 long_name = long_name + "="
             short_name = None
             if opt._short_opts:
