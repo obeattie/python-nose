@@ -76,7 +76,10 @@ else:
         user_options = get_user_options(__parser)
 
         def initialize_options(self):
-            """create the member variables, but change hyphens to underscores"""
+            """create the member variables, but change hyphens to
+            underscores
+            """
+            
             self.option_to_cmds = {}
             for opt in self.__parser.option_list:
                 cmd_name = opt._long_opts[0][2:]
@@ -102,7 +105,7 @@ else:
                 self.distribution.fetch_build_eggs(
                     self.distribution.tests_require)
 
-            argv = [] 
+            argv = ['nosetests'] 
             for (option_name, cmd_name) in self.option_to_cmds.items():
                 if option_name in option_blacklist:
                     continue
