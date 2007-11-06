@@ -12,6 +12,8 @@
   options unusable and the command itself unusable when no options
   were set (#125, #126, #128). Thanks to Alain Poirier for the bug
   reports.
+- Fixed bug in handling of string errors (#130). Thanks to schl... at
+  uni-oldenburg.de for the bug report.
 
 0.10.0
 
