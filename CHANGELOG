@@ -17,6 +17,9 @@
 - Fixed bug in coverage plugin option handling that prevented
   --cover-package=mod1,mod2 from working (#117). Thanks to Allen
   Bierbaum for the patch.
+- Fixed bug in profiler plugin that prevented output from being
+  produced when output capture was enabled on python 2.5
+  (#129). Thanks to James Casbon for the patch.
 
 0.10.0
 
