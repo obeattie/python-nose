@@ -5,7 +5,7 @@
 - Fixed bug in result proxy that caused tests to fail if they accessed
   certain result attibutes directly (#114). Thanks to Neilen Marais
   for the bug report.
-- Fixed bug in capture plugin that cause other error formatters
+- Fixed bug in capture plugin that caused other error formatters
   changes to be lost if no output was captured (#124). Thanks to
   someone at ilorentz.org for the bug report.
 - Fixed several bugs in the nosetests setup command that made some
@@ -14,6 +14,9 @@
   reports.
 - Fixed bug in handling of string errors (#130). Thanks to schl... at
   uni-oldenburg.de for the bug report.
+- Fixed bug in coverage plugin option handling that prevented
+  --cover-package=mod1,mod2 from working (#117). Thanks to Allen
+  Bierbaum for the patch.
 
 0.10.0
 
