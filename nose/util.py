@@ -263,29 +263,47 @@ def split_test_name(test):
     Either side of the : may be dotted. To change the splitting behavior, you
     can alter nose.util.split_test_re.
     """
-    parts = test.split(':')
-    num = len(parts)
-    if num == 1:
+    file_or_mod = test
+    fn = None
+    if not ':' in test:
         # only a file or mod part
         if file_like(test):
             return (test, None, None)
         else:
             return (None, test, None)
-    elif num >= 3:
-        # definitely popped off a windows driveletter
-        file_or_mod = ':'.join(parts[0:-1])
-        fn = parts[-1]
+
+    # could be path|mod:callable, or a : in the file path someplace
+    head, tail = os.path.split(test)
+    if not head:
+        # this is a case like 'foo:bar' -- generally a module
+        # name followed by a callable, but also may be a windows
+        # drive letter followed by a path
+        try:
+            file_or_mod, fn = test.split(':')
+            if file_like(fn):
+                # must be a funny path
+                file_or_mod, fn = test, None
+        except ValueError:
+            # more than one : in the test
+            # this is a case like c:\some\path.py:a_test
+            parts = test.split(':')
+            if len(parts[0]) == 1:
+                file_or_mod, fn = ':'.join(parts[:-1]), parts[-1]
+            else:
+                # nonsense like foo:bar:baz
+                raise ValueError("Test name '%s' could not be parsed. Please "
+                                 "format test names as path:callable or "
+                                 "module:callable.")
+    elif not tail:
+        # this is a case like 'foo:bar/'
+        # : must be part of the file path, so ignore it
+        file_or_mod = test
     else:
-        # only a file or mod part, or a test part, or
-        # we mistakenly split off a windows driveletter
-        file_or_mod, fn = parts
-        if len(file_or_mod) == 1:
-            # windows drive letter: must be a file
-            if not file_like(fn):
-                raise ValueError("Test name '%s' is ambiguous; can't tell "
-                                 "if ':%s' refers to a module or callable"
-                                 % (test, fn))
-            return (test, None, None)        
+        if ':' in tail:
+            file_part, fn = tail.split(':')
+        else:
+            file_part = tail
+        file_or_mod = os.sep.join([head, file_part])
     if file_or_mod:
         if file_like(file_or_mod):
             return (file_or_mod, None, fn)

@@ -28,6 +28,8 @@ class TestUtils(unittest.TestCase):
             ('some/file.py', None, None)
         assert split_test_name(':Baz') == \
             (None, None, 'Baz')
+        assert split_test_name('foo:bar/baz.py') == \
+            ('foo:bar/baz.py', None, None)
 
     def test_split_test_name_windows(self):
         # convenience
@@ -41,11 +43,11 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(stn(r'c:/some/other/path.py:Class.test'),
                          (r'c:/some/other/path.py', None, 'Class.test'))
         try:
-            stn('c:something')
+            stn('cat:dog:something')
         except ValueError:
             pass
         else:
-            self.fail("Ambiguous test name should throw ValueError")
+            self.fail("Nonsense test name should throw ValueError")
         
     def test_test_address(self):
         # test addresses are specified as
