@@ -263,12 +263,13 @@ def split_test_name(test):
     Either side of the : may be dotted. To change the splitting behavior, you
     can alter nose.util.split_test_re.
     """
+    norm = os.path.normpath
     file_or_mod = test
     fn = None
     if not ':' in test:
         # only a file or mod part
         if file_like(test):
-            return (test, None, None)
+            return (norm(test), None, None)
         else:
             return (None, test, None)
 
@@ -306,7 +307,7 @@ def split_test_name(test):
         file_or_mod = os.sep.join([head, file_part])
     if file_or_mod:
         if file_like(file_or_mod):
-            return (file_or_mod, None, fn)
+            return (norm(file_or_mod), None, fn)
         else:
             return (None, file_or_mod, fn)
     else:
