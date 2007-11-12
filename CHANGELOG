@@ -20,6 +20,8 @@
 - Fixed bug in profiler plugin that prevented output from being
   produced when output capture was enabled on python 2.5
   (#129). Thanks to James Casbon for the patch.
+- Fixed bug in adapting 0.9 plugins to 0.10. Thanks to John J Lee for
+  the bug report and tests.
 
 0.10.0
 
