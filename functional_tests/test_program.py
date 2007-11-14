@@ -126,6 +126,10 @@ class TestTestProgram(unittest.TestCase):
         This tests that the result and error classes can handle string
         exceptions.
         """
+        import warnings
+        warnings.filterwarnings('ignore', category=DeprecationWarning,
+                                module='test')
+        
         stream = StringIO()
         runner = TestRunner(stream=stream, verbosity=2)
 
