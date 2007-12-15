@@ -145,6 +145,20 @@ class TestTestProgram(unittest.TestCase):
         assert not res.wasSuccessful()
         assert res.errors
         assert not res.failures
+
+    def test_defaultTest_list(self):
+        stream = StringIO()
+        runner = TestRunner(stream=stream, verbosity=2)
+        tests = [os.path.join(support, 'package2'),
+                 os.path.join(support, 'package3')]
+        prog = TestProgram(defaultTest=tests,
+                           argv=['test_run_support_package2_3', '-v'],
+                           testRunner=runner,
+                           config=Config(),
+                           exit=False)
+        res = runner.result
+        print stream.getvalue()
+        self.assertEqual(res.testsRun, 7)
         
 
 if __name__ == '__main__':

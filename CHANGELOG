@@ -27,6 +27,11 @@
 - Fixed bug where Failure cases due to invalid test name
   specifications were passed to plugins makeTest (#120). Thanks to
   John J Lee for the bug report and patch.
+- Fixed bugs in doc css that mangled display in small windows. Thanks
+  to Ben Hoyt for the bug report and Michal Kwiatkowski for the fix.
+- Made it possible to pass a list or comma-separated string as
+  defaultTest to main(). Thanks to Allen Bierbaum for the suggestion
+  and patch.
 
 0.10.0
 
