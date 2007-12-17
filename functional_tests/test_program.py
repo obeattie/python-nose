@@ -159,6 +159,23 @@ class TestTestProgram(unittest.TestCase):
         res = runner.result
         print stream.getvalue()
         self.assertEqual(res.testsRun, 7)
+
+    def test_illegal_packages_not_selected(self):
+        stream = StringIO()
+        runner = TestRunner(stream=stream, verbosity=2)
+
+        prog = TestProgram(defaultTest=os.path.join(support, 'issue143'),
+                           argv=['test_issue_143'],
+                           testRunner=runner,
+                           config=Config(stream=stream,
+                                         plugins=DefaultPluginManager()),
+                           exit=False)
+        res = runner.result
+        print stream.getvalue()
+        self.assertEqual(res.testsRun, 0)
+        assert res.wasSuccessful()
+        assert not res.errors
+        assert not res.failures
         
 
 if __name__ == '__main__':

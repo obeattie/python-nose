@@ -32,6 +32,10 @@
 - Made it possible to pass a list or comma-separated string as
   defaultTest to main(). Thanks to Allen Bierbaum for the suggestion
   and patch.
+- Fixed a bug in nose.selector and nose.util.getpackage that caused
+  directories with names that are not legal python identifiers to be
+  collected as packages (#143). Thanks to John J Lee for the bug
+  report.
 
 0.10.0
 

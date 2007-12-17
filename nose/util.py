@@ -134,12 +134,14 @@ def ispackage(path):
     >>> ispackage('nose/loader.py')
     False
     """
-    if os.path.isdir(path):        
-        init = [e for e in os.listdir(path)
-                if os.path.isfile(os.path.join(path, e))
-                and src(e) == '__init__.py']
-        if init:
-            return True
+    if os.path.isdir(path):
+        # at least the end of the path must be a legal python identifier
+        # and __init__.py[co] must exist
+        end = os.path.basename(path)
+        if ident_re.match(end):
+            for init in ('__init__.py', '__init__.pyc', '__init__.pyo'):
+                if os.path.isfile(os.path.join(path, init)):
+                    return True
     return False
 
 
