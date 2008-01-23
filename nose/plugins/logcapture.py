@@ -11,8 +11,10 @@ TODO
  * Implement --logging-package= option, similar to --cover-package=
 """
 
-import logging
 import os
+import logging
+from logging.handlers import BufferingHandler
+
 from nose.plugins.base import Plugin
 from nose.util import ln
 
@@ -23,11 +25,10 @@ except ImportError:
 
 log = logging.getLogger(__name__)
 
-class MyMemoryHandler(logging.handlers.BufferingHandler):
+class MyMemoryHandler(BufferingHandler):
     def flush(self):
         pass # do nothing
     def truncate(self):
-        c = len(self.buffer)
         self.buffer = []
 
 class LogCapture(Plugin):
@@ -41,17 +42,23 @@ class LogCapture(Plugin):
     env_opt = 'NOSE_NOLOGCAPTURE'
     name = 'logcapture'
     score = 500
+    logformat = "%(filename)s:%(lineno)d %(message)s"
 
     def options(self, parser, env=os.environ):
         parser.add_option(
             "", "--nologcapture", action="store_false",
             default=not env.get(self.env_opt), dest="logcapture",
             help="Don't capture logging output [NOSE_NOLOGCAPTURE]")
+        parser.add_option(
+            "", "--logging-format", action="store",
+            default=self.logformat, dest="logcapture_format",
+            help="Formatting of the logging statements (default: %s)" % self.logformat)
 
     def configure(self, options, conf):
         self.conf = conf
         if not options.logcapture:
             self.enabled = False
+        self.logformat = options.logcapture_format
 
     def setup_loghandler(self):
         # setup our handler with root logger
@@ -69,6 +76,8 @@ class LogCapture(Plugin):
 
     def start(self):
         self.handler = MyMemoryHandler(1000)
+        fmt = logging.Formatter(self.logformat)
+        self.handler.setFormatter(fmt)
         self.setup_loghandler()
 
     def end(self):
@@ -82,22 +91,22 @@ class LogCapture(Plugin):
 
     def formatError(self, test, err):
         # logic flow copied from Capture.formatError
-        statements = self.buffer
-        if not statements:
+        records = self.formatLogRecords()
+        if not records:
             return err 
         ec, ev, tb = err
-        return (ec, self.addCaptureToErr(ev, statements), tb)
+        return (ec, self.addCaptureToErr(ev, records), tb)
+
+    def formatLogRecords(self):
+        format = self.handler.format
+        return [format(r) for r in self.buffer]
 
     def formatFailure(self, test, err):
         return self.formatError(test, err)
 
-    def formatLogRecord(self, r):
-        return self.handler.format(r)
-        return str(r)
-
     def addCaptureToErr(self, ev, records):
         return '\n'.join([str(ev), ln('>> begin captured logging <<')] + \
-                          [self.formatLogRecord(r) for r in records] + \
+                          records + \
                           [ln('>> end captured logging <<')])
 
     def _get_buffer(self):

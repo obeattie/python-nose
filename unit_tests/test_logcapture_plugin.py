@@ -45,3 +45,17 @@ class TestLogCapturePlugin(unittest.TestCase):
         c.end()
         self.assertEqual(1, len(c.buffer))
         self.assertEquals("Hello", c.buffer[0].msg)
+
+    def test_custom_formatter(self):
+        c = LogCapture()
+        c.logformat = '++%(message)s++'
+        c.start()
+        log = logging.getLogger("foobar.something")
+        log.debug("Hello")
+        c.end()
+        records = c.formatLogRecords()
+        self.assertEqual(1, len(records))
+        self.assertEquals("++Hello++", records[0])
+
+if __name__ == '__main__':
+    unittest.main()
