@@ -42,7 +42,7 @@ class LogCapture(Plugin):
     env_opt = 'NOSE_NOLOGCAPTURE'
     name = 'logcapture'
     score = 500
-    logformat = "%(filename)s:%(lineno)d %(message)s"
+    logformat = '%(name)s: %(levelname)s: %(message)s'
 
     def options(self, parser, env=os.environ):
         parser.add_option(
@@ -89,6 +89,9 @@ class LogCapture(Plugin):
     def afterTest(self, test):
         self.handler.truncate()
 
+    def formatFailure(self, test, err):
+        return self.formatError(test, err)
+
     def formatError(self, test, err):
         # logic flow copied from Capture.formatError
         records = self.formatLogRecords()
@@ -99,18 +102,9 @@ class LogCapture(Plugin):
 
     def formatLogRecords(self):
         format = self.handler.format
-        return [format(r) for r in self.buffer]
-
-    def formatFailure(self, test, err):
-        return self.formatError(test, err)
+        return [format(r) for r in self.handler.buffer]
 
     def addCaptureToErr(self, ev, records):
         return '\n'.join([str(ev), ln('>> begin captured logging <<')] + \
                           records + \
                           [ln('>> end captured logging <<')])
-
-    def _get_buffer(self):
-        return self.handler.buffer
-
-    buffer = property(fget=_get_buffer,
-                      doc="""Captured logging statements.""")
