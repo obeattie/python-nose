@@ -1,18 +1,28 @@
 
 import sys
-import unittest
 from optparse import OptionParser
 from nose.config import Config
 from nose.plugins.logcapture import LogCapture
+from nose.tools import eq_
 import logging
 
-class TestLogCapturePlugin(unittest.TestCase):
+class TestLogCapturePlugin(object):
 
     def test_enabled_by_default(self):
         c = LogCapture()
         assert c.enabled
 
-    def test_can_be_disabled(self):
+    def test_default_options(self):
+        c = LogCapture()
+        parser = OptionParser()
+        c.addOptions(parser)
+
+        options, args = parser.parse_args(['default_options'])
+        c.configure(options, Config())
+        assert c.enabled
+        eq_(LogCapture.logformat, c.logformat)
+
+    def test_disable_option(self):
         parser = OptionParser()
         c = LogCapture()
         c.addOptions(parser)
@@ -29,13 +39,14 @@ class TestLogCapturePlugin(unittest.TestCase):
         c.configure(options, Config())
         assert not c.enabled
 
+    def test_logging_format_option(self):
+        env = {'NOSE_LOGFORMAT': '++%(message)s++'}
         c = LogCapture()
         parser = OptionParser()
-        c.addOptions(parser)
-
-        options, args = parser.parse_args(['test_can_be_disabled'])
+        c.addOptions(parser, env)
+        options, args = parser.parse_args(['logging_format'])
         c.configure(options, Config())
-        assert c.enabled
+        eq_('++%(message)s++', c.logformat)
 
     def test_captures_logging(self):
         c = LogCapture()
@@ -43,8 +54,8 @@ class TestLogCapturePlugin(unittest.TestCase):
         log = logging.getLogger("foobar.something")
         log.debug("Hello")
         c.end()
-        self.assertEqual(1, len(c.buffer))
-        self.assertEquals("Hello", c.buffer[0].msg)
+        eq_(1, len(c.handler.buffer))
+        eq_("Hello", c.handler.buffer[0].msg)
 
     def test_custom_formatter(self):
         c = LogCapture()
@@ -54,8 +65,6 @@ class TestLogCapturePlugin(unittest.TestCase):
         log.debug("Hello")
         c.end()
         records = c.formatLogRecords()
-        self.assertEqual(1, len(records))
-        self.assertEquals("++Hello++", records[0])
+        eq_(1, len(records))
+        eq_("++Hello++", records[0])
 
-if __name__ == '__main__':
-    unittest.main()

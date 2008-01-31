@@ -5,10 +5,7 @@ appending any output captured to the error or failure output, should the test fa
 or raise an error. It is enabled by default but may be disabled with
 the options --nologcapture.
 
-TODO
-
- * Implement better formatting (more than plain %(message)s format)
- * Implement --logging-package= option, similar to --cover-package=
+Status: http://code.google.com/p/python-nose/issues/detail?id=148
 """
 
 import os
@@ -50,9 +47,9 @@ class LogCapture(Plugin):
             default=not env.get(self.env_opt), dest="logcapture",
             help="Don't capture logging output [NOSE_NOLOGCAPTURE]")
         parser.add_option(
-            "", "--logging-format", action="store",
-            default=self.logformat, dest="logcapture_format",
-            help="Formatting of the logging statements (default: %s)" % self.logformat)
+            "", "--logging-format", action="store", dest="logcapture_format",
+            default=env.get('NOSE_LOGFORMAT') or self.logformat,
+            help="logging statements formatting [NOSE_LOGFORMAT]")
 
     def configure(self, options, conf):
         self.conf = conf
@@ -71,8 +68,6 @@ class LogCapture(Plugin):
 
     def begin(self):
         self.start()
-        #import sys
-        #logging.basicConfig(stream=sys.stderr)
 
     def start(self):
         self.handler = MyMemoryHandler(1000)
