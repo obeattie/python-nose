@@ -47,10 +47,8 @@ def mods():
     # test class that uses a metaclass
     class TCType(type):
         def __new__(cls, name, bases, dct):
-            for name, val in dct.items():
-                continue
             return type.__new__(cls, name, bases, dct)
-    class TC_Custom(object):
+    class TestMetaclassed(object):
         __metaclass__ = TCType
         def test_one(self):
             pass
@@ -125,11 +123,11 @@ def mods():
     test_func_generator_name.__module__ = 'test_module_with_generators'
     test_func_generator.__module__ = 'test_module_with_generators'
     try_odd.__module__ = 'test_module_with_generators'
-    M['test_module_with_metaclass_tests'].TC_Custom = TC_Custom
-    TC_Custom.__module__ = 'test_module_with_metaclass_tests'
+    M['test_module_with_metaclass_tests'].TestMetaclassed = TestMetaclassed
+    TestMetaclassed.__module__ = 'test_module_with_metaclass_tests'
     del TC
     del TC2
-    del TC_Custom
+    del TestMetaclassed
     # del TCType
     del test_func
     del TestClass
