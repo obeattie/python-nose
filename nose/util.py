@@ -143,6 +143,9 @@ def ispackage(path):
             for init in ('__init__.py', '__init__.pyc', '__init__.pyo'):
                 if os.path.isfile(os.path.join(path, init)):
                     return True
+            if sys.platform.startswith('java') and \
+                    os.path.isfile(os.path.join(path, '__init__$py.class')):
+                return True
     return False
 
 
@@ -400,11 +403,14 @@ def try_run(obj, names):
 
 
 def src(filename):
-    """Find the python source file for a .pyc or .pyo file. Returns the 
-    filename provided if it is not a python source file.
+    """Find the python source file for a .pyc, .pyo or $py.class file on
+    jython. Returns the filename provided if it is not a python source
+    file.
     """
     if filename is None:
         return filename
+    if sys.platform.startswith('java') and filename.endswith('$py.class'):
+        return '.'.join((filename[:-9], 'py'))
     base, ext = os.path.splitext(filename)
     if ext in ('.pyc', '.pyo', '.py'):
         return '.'.join((base, 'py'))

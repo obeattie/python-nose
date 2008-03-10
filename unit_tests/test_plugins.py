@@ -7,12 +7,16 @@ from optparse import OptionParser
 import tempfile
 from warnings import warn, filterwarnings, resetwarnings
 
+from nose import SkipTest
 from nose.config import Config
 from nose.plugins.attrib import AttributeSelector
 from nose.plugins.base import Plugin
 from nose.plugins.cover import Coverage
 from nose.plugins.doctests import Doctest
-from nose.plugins.prof import Profile
+try:
+    from nose.plugins.prof import Profile
+except ImportError:
+    Profile = None
 
 from mock import *
 
@@ -345,6 +349,11 @@ class TestAttribPlugin(unittest.TestCase):
         
 
 class TestProfPlugin(unittest.TestCase):
+
+    def setUp(self):
+        if Profile is None:
+            raise SkipTest('profile plugin not available; skipping')
+
     def test_options(self):
         parser = OptionParser()
         conf = Config()

@@ -28,7 +28,6 @@ Or, more realistically::
 
 import sys
 from Queue import Queue, Empty
-
 from nose.tools import make_decorator, TimeExpired
 
 __all__ = [

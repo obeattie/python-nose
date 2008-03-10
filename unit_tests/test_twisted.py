@@ -1,6 +1,9 @@
 from nose.exc import SkipTest
 from nose.tools import *
-from nose.twistedtools import *
+try:
+    from nose.twistedtools import *
+except ImportError:
+    raise SkipTest('twisted not available; skipping')
 
 from twisted.internet.defer import Deferred
 from twisted.internet.error import DNSLookupError
