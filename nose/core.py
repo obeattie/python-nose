@@ -13,7 +13,7 @@ from nose.config import Config, all_config_files
 from nose.loader import defaultTestLoader
 from nose.plugins.manager import PluginManager, DefaultPluginManager, \
      RestrictedPluginManager
-from nose.result import TextTestResult
+from nose.result import TextTestResult, ReporterTestResult
 from nose.suite import FinalizingSuiteWrapper
 from nose.util import isclass, tolist
 
@@ -24,7 +24,8 @@ compat_24 = sys.version_info >= (2, 4)
 __all__ = ['TestProgram', 'main', 'run', 'run_exit', 'runmodule', 'collector',
            'TextTestRunner']
 
-            
+
+
 class TextTestRunner(unittest.TextTestRunner):
     """Test runner that uses nose's TextTestResult to enable errorClasses,
     as well as providing hooks for plugins to override or replace the test
@@ -65,6 +66,16 @@ class TextTestRunner(unittest.TextTestRunner):
         result.printSummary(start, stop)
         self.config.plugins.finalize(result)
         return result
+
+
+class ReporterTestRunner(TextTestRunner):
+    def _makeResult(self):
+        return ReporterTestResult(self.stream,
+                                  self.descriptions,
+                                  self.verbosity,
+                                  self.config)
+                                
+
 
     
 class TestProgram(unittest.TestProgram):
@@ -289,9 +300,10 @@ class TestProgram(unittest.TestProgram):
         """
         log.debug("runTests called")
         if self.testRunner is None:
-            self.testRunner = TextTestRunner(stream=self.config.stream,
-                                             verbosity=self.config.verbosity,
-                                             config=self.config)
+            self.testRunner = ReporterTestRunner(
+                stream=self.config.stream,
+                verbosity=self.config.verbosity,
+                config=self.config)
         plug_runner = self.config.plugins.prepareTestRunner(self.testRunner)
         if plug_runner is not None:
             self.testRunner = plug_runner
