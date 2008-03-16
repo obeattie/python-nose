@@ -98,7 +98,11 @@ class Plugin(object):
              DeprecationWarning)
         return tolist(val)
 
+    def isReporter(self):
+        # FIXME: figure out automagically
+        return False
 
+    
 class IPluginInterface(object):
     """
     Nose plugin API
@@ -734,7 +738,34 @@ class IPluginInterface(object):
         """
         pass
     prepareTestRunner._new = True
-        
+
+    def progressError(self, test, err, verbosity, out=None):
+        """Called during test run for each test that raises an exception that
+        is not a failure and is not handled by an ErrorClass plugin. Return
+        the output that should be sent to the output stream, or None to stop
+        output processing for this event. ``out`` will be None if no other
+        plugin has yet produced output.
+
+        :Parameters:
+           FIXME
+        """
+        pass
+    progressError.chainable = True
+    progressError.static_args = (True, True, True, False)
+
+    def progressErrorClass(self, test, err, label, cls, isfail, verbosity,
+                           out=None):
+        """Called during test run for each test that raises an exception that
+        has been handled by an ErrorClass plugin.  Return
+        the output that should be sent to the output stream, or None to stop
+        output processing for this event. ``out`` will be None if no other
+        plugin has yet produced output.
+        """
+        pass
+    progressErrorClass.chainable = True
+    progressErrorClass.static_args = (True, True, True, True, True, True,
+                                      False)
+    
     def report(self, stream):
         """Called after all error output has been printed. Print your
         plugin's report to the provided stream. Return None to allow

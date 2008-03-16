@@ -13,7 +13,8 @@ builtins = (
     ('nose.plugins.failuredetail', 'FailureDetail'),
     ('nose.plugins.prof', 'Profile'),
     ('nose.plugins.skip', 'Skip'),
-    ('nose.plugins.testid', 'TestId')
+    ('nose.plugins.testid', 'TestId'),
+    ('nose.plugins.unittest_reporter', 'UnittestReporter')
     )
 
 for module, cls in builtins:

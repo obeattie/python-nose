@@ -62,30 +62,48 @@ An output decorator plugin.
     >>> from nose.plugins import Plugin
     >>> class TagOutput(Plugin):
     ...     enabled = True
-    ...     def progressSuccess(self, test, out, verbosity):
+    ...     score = 100
+    ...     def options(self, parser, env=None):
+    ...         pass
+    ...     def configure(self, config, options):
+    ...         pass
+    ...     def progressSuccess(self, test, verbosity, out):
     ...         return "<g>%s</g>" % out
-    ...     def progressFailure(self, test, err, out, verbosity):
+    ...     def progressFailure(self, test, err, verbosity, out):
     ...         return "<y>%s</y>" % out
-    ...     def progressError(self, test, err, out, verbosity):
-    ...         return "<r>%s</r>" %out
-    ...     def progressErrorClass(self, test, err, err_cls, out, verbosity):
-    ...         if err_cls.isfailure:
-    ...             return "<o>%s</o>" % out
+    ...     def progressError(self, test, err, verbosity, out=None):
+    ...         if verbosity > 1:
+    ...             if out.endswith("\n"):
+    ...                 out = out[:-1]
+    ...             end = "\n"
     ...         else:
-    ...             return "<b>%s</b>" % out
-    ...     def reportFailure(self, test, err, out, verbosity):
+    ...             end = ""
+    ...         return "<r>%s</r>%s" % (out, end)
+    ...     def progressErrorClass(self, test, err, label, err_cls, isfail,
+    ...                            verbosity, out):
+    ...         if verbosity > 1:
+    ...             if out.endswith("\n"):
+    ...                 out = out[:-1]
+    ...             end = "\n"
+    ...         else:
+    ...             end = ""
+    ...         if isfail:
+    ...             return "<o>%s</o>%s" % (out, end)
+    ...         else:
+    ...             return "<b>%s</b>%s" % (out, end)
+    ...     def reportFailure(self, test, err, verbosity, out):
     ...         return self.tagTraceback(out)
     ...     def tagTraceback(self, out):
     ...         return "<tb>\n%s\n</tb>" % out
 
 Output with the output decorator plugin enabled.
     
-    >>> argv = [__file__, '-v', support]
-    >>> run(argv=argv, plugins=[todo.TodoPlugin(), skip.Skip(), TagOutput()])
+    >>> argv = [__file__, '-vv', support]
+    >>> run(argv=argv, plugins=[todo.TodoPlugin(), skip.Skip(), TagOutput()]) # doctest: +REPORT_NDIFF
     tests.test_pass ... <g>ok</g>
     tests.test_fail ... <y>FAIL</y>
     tests.test_error ... <r>ERROR</r>
-    tests.test_skip ... <p>SKIP: skip me</p>
+    tests.test_skip ... <b>SKIP: skip me</b>
     tests.test_todo ... <o>TODO: Do something later</o>
     <BLANKLINE>
     <tb>

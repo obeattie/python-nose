@@ -151,6 +151,8 @@ class ErrorClassPlugin(Plugin):
         if hasattr(result, 'printErrors'):
             result._orig_printErrors, result.printErrors = \
                 result.printErrors, print_errors_patch(result)
+        result.excInfo = exc_info_patch(result)
+        result.errorInClass = error_in_class_patch(result)
         result.errorClasses = {}
 
 
@@ -161,6 +163,20 @@ def add_error_patch(result):
     """
     return instancemethod(
         TextTestResult.addError.im_func, result, result.__class__)
+
+
+def error_in_class_patch(result):
+    """Create a new errorInClass method to patch into a result instance
+    """
+    return instancemethod(
+        TextTestResult.errorInClass.im_func, result, result.__class__)
+
+
+def exc_info_patch(result):
+    """Create a new excInfo method to patch into a result instance.
+    """
+    return instancemethod(
+        TextTestResult.excInfo.im_func, result, result.__class__)
 
 
 def print_errors_patch(result):

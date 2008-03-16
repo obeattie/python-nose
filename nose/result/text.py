@@ -46,19 +46,15 @@ class TextTestResult(_TextTestResult):
         """
         stream = getattr(self, 'stream', None)
         ec, ev, tb = err
-        try:
-            exc_info = self._exc_info_to_string(err, test)
-        except TypeError:
-            # 2.3 compat
-            exc_info = self._exc_info_to_string(err)
+        exc_info = self.excInfo(err, test)
         for cls, (storage, label, isfail) in self.errorClasses.items():
-            if isclass(ec) and issubclass(ec, cls):
+            if self.errorInClass(ec, cls):
                 storage.append((test, exc_info))
                 # Might get patched into a streamless result
                 if stream is not None:
                     if self.showAll:
                         message = [label]
-                        detail = _exception_detail(err[1])
+                        detail = _exception_detail(ev)
                         if detail:
                             message.append(detail)
                         stream.writeln(": ".join(message))
@@ -72,6 +68,17 @@ class TextTestResult(_TextTestResult):
             elif self.dots:
                 stream.write('E')
 
+    def errorInClass(self, ec, cls):
+        return isclass(ec) and issubclass(ec, cls)
+                
+    def excInfo(self, err, test):
+        try:
+            exc_info = self._exc_info_to_string(err, test)
+        except TypeError:
+            # 2.3 compat
+            exc_info = self._exc_info_to_string(err)
+        return exc_info
+                
     def printErrors(self):
         """Overrides to print all errorClasses errors as well.
         """
