@@ -1,6 +1,8 @@
 Controlling or Modifying Test Run Output with a Plugin
 ------------------------------------------------------
 
+Blah blah.
+
     >>> import os
     >>> import sys
     >>> support = os.path.join(os.path.dirname(__file__), 'support')
@@ -19,7 +21,7 @@ Controlling or Modifying Test Run Output with a Plugin
     >>> import todo
     >>> from nose.plugins import skip
 
-    The default output.
+The default output.
     
     >>> argv = [__file__, '-v', support]
     >>> run(argv=argv, plugins=[todo.TodoPlugin(), skip.Skip()])
@@ -55,9 +57,10 @@ Controlling or Modifying Test Run Output with a Plugin
     <BLANKLINE>
     FAILED (failures=1, errors=1, TODO=1)
 
-    An output decorator plugin.
+An output decorator plugin.
 
-    >>> class TagOutput():
+    >>> from nose.plugins import Plugin
+    >>> class TagOutput(Plugin):
     ...     enabled = True
     ...     def progressSuccess(self, test, out, verbosity):
     ...         return "<g>%s</g>" % out
@@ -75,6 +78,8 @@ Controlling or Modifying Test Run Output with a Plugin
     ...     def tagTraceback(self, out):
     ...         return "<tb>\n%s\n</tb>" % out
 
+Output with the output decorator plugin enabled.
+    
     >>> argv = [__file__, '-v', support]
     >>> run(argv=argv, plugins=[todo.TodoPlugin(), skip.Skip(), TagOutput()])
     tests.test_pass ... <g>ok</g>
