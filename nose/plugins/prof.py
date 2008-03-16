@@ -28,7 +28,7 @@ class Profile(Plugin):
     pfile = None
     clean_stats_file = False
     def options(self, parser, env=os.environ):
-        if hotshot is None:
+        if not self.available():
             return
         Plugin.options(self, parser, env)                
         parser.add_option('--profile-sort', action='store', dest='profile_sort',
@@ -44,15 +44,19 @@ class Profile(Plugin):
                           default=env.get('NOSE_PROFILE_RESTRICT'),
                           help="Restrict profiler output. See help for "
                           "pstats.Stats for details")
-    
+
+    def available(cls):
+        return hotshot is not None
+    available = classmethod(available)
+        
     def begin(self):
-        if hotshot is None:
+        if not self.available():
             return
         self._create_pfile()
         self.prof = hotshot.Profile(self.pfile)
 
     def configure(self, options, conf):
-        if hotshot is None:
+        if not self.available():
             self.enabled = False
             return
         Plugin.configure(self, options, conf)
@@ -69,7 +73,7 @@ class Profile(Plugin):
         self.restrict = tolist(options.profile_restrict)
             
     def prepareTest(self, test):
-        if hotshot is None:
+        if not self.available():
             return
         log.debug('preparing test %s' % test)
         def run_and_profile(result, prof=self.prof, test=test):
@@ -106,7 +110,7 @@ class Profile(Plugin):
                 sys.stdout = tmp
 
     def finalize(self, result):
-        if hotshot is None:
+        if not self.available():
             return
         try:
             self.prof.close()

@@ -13,10 +13,7 @@ from nose.plugins.attrib import AttributeSelector
 from nose.plugins.base import Plugin
 from nose.plugins.cover import Coverage
 from nose.plugins.doctests import Doctest
-try:
-    from nose.plugins.prof import Profile
-except ImportError:
-    Profile = None
+from nose.plugins.prof import Profile
 
 from mock import *
 
@@ -350,8 +347,8 @@ class TestAttribPlugin(unittest.TestCase):
 
 class TestProfPlugin(unittest.TestCase):
 
-    def setUp(self):
-        if Profile is None:
+    def setUp(self):        
+        if not Profile.available():
             raise SkipTest('profile plugin not available; skipping')
 
     def test_options(self):
