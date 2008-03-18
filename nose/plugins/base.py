@@ -513,6 +513,12 @@ class IPluginInterface(object):
         pass
     handleFailure._new = True
 
+    def isReporter(self):
+        """If the plugin is a reporter plugin, return self.
+        """
+        pass
+    isReporter._new = True
+    
     def loadTestsFromDir(self, path):
         """Return iterable of tests from a directory. May be a
         generator.  Each item returned must be a runnable
@@ -738,8 +744,37 @@ class IPluginInterface(object):
         """
         pass
     prepareTestRunner._new = True
+    
+    def reportStartTest(self, test, verbosity, out=None):
+        """
+        Called during test run at the start of each test. Use this, for example,
+        to output the test name. Return the output that should be sent to the
+        output stream, or None to stop output processing for this
+        event. ``out`` will be None if no other plugin has yet produced
+        output.
 
-    def progressError(self, test, err, verbosity, out=None):
+        :Parameters:
+           FIXME
+        """
+        pass
+    reportStartTest.chainable = True
+    reportStartTest.static_args = (True, True, False)
+
+    def reportStopTest(self, test, verbosity, out=None):
+        """
+        Called during test run at the end of each test. Return the output that
+        should be sent to the output stream, or None to stop output processing
+        for this event. ``out`` will be None if no other plugin has yet
+        produced output.
+
+        :Parameters:
+           FIXME
+        """
+        pass
+    reportStopTest.chainable = True
+    reportStopTest.static_args = (True, True, False)
+    
+    def reportError(self, test, err, verbosity, out=None):
         """Called during test run for each test that raises an exception that
         is not a failure and is not handled by an ErrorClass plugin. Return
         the output that should be sent to the output stream, or None to stop
@@ -750,10 +785,10 @@ class IPluginInterface(object):
            FIXME
         """
         pass
-    progressError.chainable = True
-    progressError.static_args = (True, True, True, False)
+    reportError.chainable = True
+    reportError.static_args = (True, True, True, False)
 
-    def progressErrorClass(self, test, err, label, cls, isfail, verbosity,
+    def reportErrorClass(self, test, err, label, cls, isfail, verbosity,
                            out=None):
         """Called during test run for each test that raises an exception that
         has been handled by an ErrorClass plugin.  Return
@@ -762,11 +797,53 @@ class IPluginInterface(object):
         plugin has yet produced output.
         """
         pass
-    progressErrorClass.chainable = True
-    progressErrorClass.static_args = (True, True, True, True, True, True,
+    reportErrorClass.chainable = True
+    reportErrorClass.static_args = (True, True, True, True, True, True,
                                       False)
+
+    def reportFailure(self, test, err, verbosity, out=None):
+        """Called during test run for each test that fails. Return
+        the output that should be sent to the output stream, or None to stop
+        output processing for this event. ``out`` will be None if no other
+        plugin has yet produced output.
+
+        :Parameters:
+           FIXME
+        """
+        pass
+    reportFailure.chainable = True
+    reportFailure.static_args = (True, True, True, False)
+
+    def reportSuccess(self, test, verbosity, out=None):
+        """
+        Called during test run for each successful test. Use this, for
+        example, to output a dot (.) or 'ok'. Return the output that should be
+        sent to the output stream, or None to stop output processing for this
+        event. ``out`` will be None if no other plugin has yet produced
+        output.
+
+        :Parameters:
+           FIXME
+        """
+        pass
+    reportSuccess.chainable = True
+    reportSuccess.static_args = (True, True, False)
+
+    def errorList(self, label, errors, verbosity, out=None):
+        """
+        Called at the end of the test run for each list of errors or
+        failures that have occurred during the test run. Return the output
+        that should be sent to the output stream, or None to stop output
+        processing for this  event. ``out`` will be None if no other plugin
+        has yet produced output.
+
+        :Parameters:
+           FIXME
+        """
+    errorList.chainable = True
+    errorList.static_args = (True, True, True, False)
     
-    def report(self, stream):
+    def report(self, stream=None):
         """Called after all error output has been printed. Print your
         plugin's report to the provided stream. Return None to allow
         other plugins to print reports, any other value to stop them.
@@ -776,7 +853,26 @@ class IPluginInterface(object):
              stream object; send your output here
         """
         pass
+    report._changed = True
 
+    def summary(self, start, stop, tests_run, successful, err_counts,
+                verbosity, out=None):
+        """        
+        Called at the very end of the test run, after all errors and reports
+        have been output. Use this to output the final status of the test
+        run. You may depend on this method being the last output method
+        called. Return the output that should be sent to the output stream, or
+        None to stop output processing for this event. ``out`` will be None if
+        no other plugin has yet produced output.
+
+        :Parameters:
+           FIXME
+        """
+        pass
+    summary._new = True
+    summary.chainable = True
+    summary.static_args = (True, True, True, True, True, True, False)
+        
     def setOutputStream(self, stream):
         """Called before test output begins. To direct test output to a
         new stream, return a stream object, which must implement a

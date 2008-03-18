@@ -64,6 +64,9 @@ class RecordingPluginManager(object):
     def __getattr__(self, call):
         return RecordingPluginProxy(self, call)
 
+    def addPlugin(self, p):
+        pass
+    
     def null_call(self, call, *arg, **kw):
         return getattr(self._nullPluginManager, call)(*arg, **kw)
 

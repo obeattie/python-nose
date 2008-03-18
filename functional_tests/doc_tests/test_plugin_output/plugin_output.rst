@@ -59,42 +59,32 @@ The default output.
 
 An output decorator plugin.
 
+    >>> import re
     >>> from nose.plugins import Plugin
     >>> class TagOutput(Plugin):
     ...     enabled = True
     ...     score = 100
+    ...     tb_pat = re.compile(r'(Traceback(?:.|\n)*?)(\n(?:\n|$))')
     ...     def options(self, parser, env=None):
     ...         pass
     ...     def configure(self, config, options):
     ...         pass
-    ...     def progressSuccess(self, test, verbosity, out):
+    ...     def reportSuccess(self, test, verbosity, out=None):
     ...         return "<g>%s</g>" % out
-    ...     def progressFailure(self, test, err, verbosity, out):
+    ...     def reportFailure(self, test, err, verbosity, out=None):
     ...         return "<y>%s</y>" % out
-    ...     def progressError(self, test, err, verbosity, out=None):
-    ...         if verbosity > 1:
-    ...             if out.endswith("\n"):
-    ...                 out = out[:-1]
-    ...             end = "\n"
-    ...         else:
-    ...             end = ""
-    ...         return "<r>%s</r>%s" % (out, end)
-    ...     def progressErrorClass(self, test, err, label, err_cls, isfail,
-    ...                            verbosity, out):
-    ...         if verbosity > 1:
-    ...             if out.endswith("\n"):
-    ...                 out = out[:-1]
-    ...             end = "\n"
-    ...         else:
-    ...             end = ""
+    ...     def reportError(self, test, err, verbosity, out=None):
+    ...         return "<r>%s</r>" % out
+    ...     def reportErrorClass(self, test, err, label, err_cls, isfail,
+    ...                            verbosity, out=None):
     ...         if isfail:
-    ...             return "<o>%s</o>%s" % (out, end)
+    ...             return "<o>%s</o>" % out
     ...         else:
-    ...             return "<b>%s</b>%s" % (out, end)
-    ...     def reportFailure(self, test, err, verbosity, out):
-    ...         return self.tagTraceback(out)
-    ...     def tagTraceback(self, out):
-    ...         return "<tb>\n%s\n</tb>" % out
+    ...             return "<b>%s</b>" % out
+    ...     def errorList(self, label, errors, verbosity, out):
+    ...         return self.tagTracebacks(out)
+    ...     def tagTracebacks(self, out):
+    ...         return self.tb_pat.sub(r'<tb>\n\1\n</tb>\2', out)
 
 Output with the output decorator plugin enabled.
     
@@ -106,28 +96,28 @@ Output with the output decorator plugin enabled.
     tests.test_skip ... <b>SKIP: skip me</b>
     tests.test_todo ... <o>TODO: Do something later</o>
     <BLANKLINE>
-    <tb>
     ======================================================================
     ERROR: tests.test_error
     ----------------------------------------------------------------------
+    <tb>
     Traceback (most recent call last):
     ...
     ZeroDivisionError: integer division or modulo by zero
     </tb>
     <BLANKLINE>
-    <tb>
     ======================================================================
     FAIL: tests.test_fail
     ----------------------------------------------------------------------
+    <tb>
     Traceback (most recent call last):
     ...
     AssertionError: I failed
     </tb>
     <BLANKLINE>
-    <tb>
     ======================================================================
     TODO: tests.test_todo
     ----------------------------------------------------------------------
+    <tb>
     Traceback (most recent call last):
     ...
     Todo: Do something later

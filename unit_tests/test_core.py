@@ -1,5 +1,6 @@
 import sys
 import unittest
+import warnings
 from cStringIO import StringIO
 from optparse import OptionParser
 import nose.core
@@ -14,6 +15,10 @@ class NullLoader:
 
 class TestAPI_run(unittest.TestCase):
 
+    def setUp(self):
+        # the test run below will fire a no-output-plugin warning
+        warnings.filterwarnings('ignore', category=RuntimeWarning)
+            
     def test_restore_stdout(self):
         print "AHOY"
         s = StringIO()
