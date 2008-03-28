@@ -1,0 +1,77 @@
+Importing Tests
+---------------
+
+When a package imports tests from another package, the tests are
+**completely** relocated into the importing package. This means that the
+fixtures from the source package are **not** run when the tests in the
+importing package are executed.
+
+For example, consider this collection of packages:
+
+    >>> import os
+    >>> support = os.path.join(os.path.dirname(__file__), 'support')
+    >>> from nose.util import ls_tree
+    >>> print ls_tree(support)
+    |-- package1/
+    |   |-- __init__.py
+    |   `-- test_module.py
+    |-- package2c/
+    |   |-- __init__.py
+    |   `-- test_module.py
+    `-- package2f/
+        |-- __init__.py
+        `-- test_module.py
+
+In these packages, the tests are all defined in package1, and are imported
+into package2f and package2c.
+
+.. Note ::
+
+   The run() function in `nose.plugins.plugintest`_ reformats test result
+   output to remove timings, which will vary from run to run, and
+   redirects the output to stdout.
+
+    >>> from nose.plugins.plugintest import run
+
+..
+
+package1 has fixtures, which we can see by running all of the tests. Note
+below that the test names reflect the modules into which the tests are
+imported, not the source modules.
+
+    >>> argv = [__file__, '-v', support]
+    >>> run(argv=argv)
+    package1 setup
+    package1.test_module.TestClass.test_class ... ok
+    package1.test_module.test_function ... ok
+    package2c setup
+    package2c.test_module.TestClass.test_class ... ok
+    package2f setup
+    package2f.test_module.test_function ... ok
+    <BLANKLINE>
+    ----------------------------------------------------------------------
+    Ran 4 tests in ...s
+
+    OK
+
+When tests are run in package2f or package2c, only the fixtures from those
+packages are executed.
+
+    >>> argv = [__file__, '-v', os.path.join(support, 'package2f')]
+    >>> run(argv=argv)
+    package2f setup
+    package2f.test_module.test_function ... ok
+    <BLANKLINE>
+    ----------------------------------------------------------------------
+    Ran 1 test in ...s
+
+    OK
+    >>> argv = [__file__, '-v', os.path.join(support, 'package2c')]
+    >>> run(argv=argv)
+    package2c setup
+    package2c.test_module.TestClass.test_class ... ok
+    <BLANKLINE>
+    ----------------------------------------------------------------------
+    Ran 1 test in ...s
+
+    OK
