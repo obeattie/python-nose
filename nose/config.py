@@ -23,19 +23,19 @@ config_files = [
 
 
 class NoSuchOptionError(Exception):
-
     def __init__(self, name):
         Exception.__init__(self, name)
         self.name = name
 
 
 class ConfigError(Exception):
-
     pass
 
 
 class ConfiguredDefaultsOptionParser(object):
-
+    """
+    Handler for options from commandline and config files.
+    """
     def __init__(self, parser, config_section, _error=None):
         self._parser = parser
         self._config_section = config_section
@@ -98,7 +98,7 @@ class ConfiguredDefaultsOptionParser(object):
         else:
             option.process(opt_str, value, values, parser)
 
-    def _applyConfigurationToValues(self, parser, config, values):
+    def _applyConfigurationToValues(self, parser, config, values, plugins=None):
         for name, value, filename in config:
             if name in option_blacklist:
                 continue
@@ -106,21 +106,29 @@ class ConfiguredDefaultsOptionParser(object):
             try:
                 self._processConfigValue(name, value, values, parser)
             except NoSuchOptionError, exc:
-                self._error("Error reading config file %r: "
-                            "no such option %r" % (filename, exc.name))
+                if (hasattr(plugins, 'excludedOption') and
+                    plugins.excludedOption(name)):
+                    msg = ("Option %r in config file %r ignored: "
+                           "excluded by runtime environment" %
+                           (name, filename))
+                    warn(msg, RuntimeWarning)
+                else:
+                    self._error("Error reading config file %r: "
+                                "no such option %r" % (filename, exc.name))
             except optparse.OptionValueError, exc:
                 msg = str(exc).replace('--' + name, repr(name), 1)
                 self._error("Error reading config file %r: "
                             "%s" % (filename, msg))
 
-    def parseArgsAndConfigFiles(self, args, config_files):
+    def parseArgsAndConfigFiles(self, args, config_files, plugins=None):
         values = self._parser.get_default_values()
         try:
             config = self._readConfiguration(config_files)
         except ConfigError, exc:
             self._error(str(exc))
         else:
-            self._applyConfigurationToValues(self._parser, config, values)
+            self._applyConfigurationToValues(
+                self._parser, config, values, plugins)
         return self._parser.parse_args(args, values)
 
 
@@ -213,7 +221,7 @@ class Config(object):
     def _parseArgs(self, args, cfg_files):
         parser = ConfiguredDefaultsOptionParser(self.getParser(),
                                                 self.configSection)
-        return parser.parseArgsAndConfigFiles(args, cfg_files)
+        return parser.parseArgsAndConfigFiles(args, cfg_files, self.plugins)
 
     def configure(self, argv=None, doc=None):
         """Configure the nose running environment. Execute configure before

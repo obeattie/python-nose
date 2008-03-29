@@ -45,7 +45,6 @@ class Profile(Plugin):
 
     def configure(self, options, conf):
         Plugin.configure(self, options, conf)
-        self.options = options
         self.conf = conf
 
         if options.profile_stats_file:
