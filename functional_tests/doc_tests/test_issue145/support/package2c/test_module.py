@@ -1,1 +1,1 @@
-from package1.test_module import TestClass
+from package1.test_module import TestClass, TestCase

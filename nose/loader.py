@@ -22,6 +22,9 @@ from nose.util import cmp_lineno, getpackage, isclass, isgenerator, ispackage, \
     match_last, resolve_name
 from nose.suite import ContextSuiteFactory, ContextList, LazySuite
 
+# FIXME should be in util?
+from nose.tools import transplant, transplant_class
+
 log = logging.getLogger(__name__)
 #log.setLevel(logging.DEBUG)
 
@@ -463,7 +466,9 @@ class TestLoader(unittest.TestLoader):
         
         if isinstance(obj, unittest.TestCase):
             return obj
-        elif isclass(obj):            
+        elif isclass(obj):
+            if parent and obj.__module__ != parent.__name__:
+                obj = transplant_class(obj, parent.__name__)
             if issubclass(obj, unittest.TestCase):
                 return self.loadTestsFromTestCase(obj)
             else:
@@ -479,6 +484,8 @@ class TestLoader(unittest.TestLoader):
                 else:
                     return MethodTestCase(obj)
         elif isfunction(obj):
+            if parent and obj.__module__ != parent.__name__:
+                obj = transplant(parent.__name__)(obj)
             if isgenerator(obj):
                 return self.loadTestsFromGenerator(obj, parent)
             else:

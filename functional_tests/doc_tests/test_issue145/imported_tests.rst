@@ -11,14 +11,14 @@ For example, consider this collection of packages:
     >>> import os
     >>> support = os.path.join(os.path.dirname(__file__), 'support')
     >>> from nose.util import ls_tree
-    >>> print ls_tree(support)
-    |-- package1/
+    >>> print ls_tree(support) # doctest: +REPORT_NDIFF
+    |-- package1
     |   |-- __init__.py
     |   `-- test_module.py
-    |-- package2c/
+    |-- package2c
     |   |-- __init__.py
     |   `-- test_module.py
-    `-- package2f/
+    `-- package2f
         |-- __init__.py
         `-- test_module.py
 
@@ -40,38 +40,42 @@ below that the test names reflect the modules into which the tests are
 imported, not the source modules.
 
     >>> argv = [__file__, '-v', support]
-    >>> run(argv=argv)
+    >>> run(argv=argv) # doctest: +REPORT_NDIFF
     package1 setup
+    test (package1.test_module.TestCase) ... ok
     package1.test_module.TestClass.test_class ... ok
     package1.test_module.test_function ... ok
     package2c setup
+    test (package2c.test_module.TestCase) ... ok
     package2c.test_module.TestClass.test_class ... ok
     package2f setup
     package2f.test_module.test_function ... ok
     <BLANKLINE>
     ----------------------------------------------------------------------
-    Ran 4 tests in ...s
-
+    Ran 6 tests in ...s
+    <BLANKLINE>
     OK
 
 When tests are run in package2f or package2c, only the fixtures from those
 packages are executed.
 
     >>> argv = [__file__, '-v', os.path.join(support, 'package2f')]
-    >>> run(argv=argv)
+    >>> run(argv=argv) # doctest: +REPORT_NDIFF
     package2f setup
     package2f.test_module.test_function ... ok
     <BLANKLINE>
     ----------------------------------------------------------------------
     Ran 1 test in ...s
-
+    <BLANKLINE>
     OK
+    
     >>> argv = [__file__, '-v', os.path.join(support, 'package2c')]
-    >>> run(argv=argv)
+    >>> run(argv=argv) # doctest: +REPORT_NDIFF
     package2c setup
+    test (package2c.test_module.TestCase) ... ok
     package2c.test_module.TestClass.test_class ... ok
     <BLANKLINE>
     ----------------------------------------------------------------------
-    Ran 1 test in ...s
-
+    Ran 2 tests in ...s
+    <BLANKLINE>
     OK
