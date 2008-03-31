@@ -8,6 +8,7 @@ Utilities for testing plugins.
 
 import re
 import sys
+from warnings import warn
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -209,15 +210,33 @@ def run(*arg, **kw):
     if 'argv' not in kw:
         kw['argv'] = ['nosetests', '-v']
     kw['config'].stream = buffer
+    # Set up buffering so that all output goes to our buffer,
+    # or warn user if deprecated behavior is active.
     stderr = sys.stderr
-    sys.stderr = buffer
+    stdout = sys.stdout
+    if kw.pop('buffer_all', False):
+        sys.stdout = sys.stderr = buffer
+        restore = True
+    else:
+        restore = False
+        warn("The behavior of nose.plugins.plugintest.run() will change in "
+             "the next release of nose. The current behavior does not "
+             "correctly account for output to stdout and stderr. To enable "
+             "correct behavior, use run_buffered() instead, or pass "
+             "the keyword argument buffer_all=True to run().",
+             DeprecationWarning, stacklevel=2)
     try:
         run(*arg, **kw)
     finally:
-        sys.stderr = stderr
+        if restore:
+            sys.stderr = stderr
+            sys.stdout = stdout
     out = buffer.getvalue()
     print munge_nose_output_for_doctest(out)
 
+def run_buffered(*arg, **kw):
+    kw['buffer_all'] = True
+    run(*arg, **kw)
 
 
 if __name__ == '__main__':

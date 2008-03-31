@@ -26,7 +26,7 @@ method.
    output to remove timings, which will vary from run to run, and
    redirects the output to stdout.
 
-    >>> from nose.plugins.plugintest import run
+    >>> from nose.plugins.plugintest import run_buffered as run
 
 ..
 
@@ -76,3 +76,14 @@ command line, a warning is raised instead of an exception.
     Ran 1 test in ...s
     <BLANKLINE>
     OK
+
+However, if an option appears in a configuration file that is not recognized
+either as an option defined by nose, or by an active or excluded plugin, an
+error is raised.
+
+    >>> argv = ['plugintest', '-v', '-c', os.path.join(support, 'bad.cfg'),
+    ...         support]
+    >>> run(argv=argv, plugins=restricted) # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    ConfigError: Error reading config file '...bad.cfg': no such option 'with-meltedcheese'

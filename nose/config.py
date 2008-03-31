@@ -36,12 +36,15 @@ class ConfiguredDefaultsOptionParser(object):
     """
     Handler for options from commandline and config files.
     """
-    def __init__(self, parser, config_section, _error=None):
+    def __init__(self, parser, config_section, error=None, file_error=None):
         self._parser = parser
         self._config_section = config_section
-        if _error is None:
-            _error = self._parser.error
-        self._error = _error
+        if error is None:
+            error = self._parser.error
+        self._error = error
+        if file_error is None:
+            file_error = lambda msg, **kw: error(msg)
+        self._file_error = file_error
 
     def _configTuples(self, cfg, filename):
         config = []
@@ -102,25 +105,20 @@ class ConfiguredDefaultsOptionParser(object):
         for name, value, filename in config:
             if name in option_blacklist:
                 continue
-
             try:
                 self._processConfigValue(name, value, values, parser)
             except NoSuchOptionError, exc:
-                if (hasattr(plugins, 'excludedOption') and
-                    plugins.excludedOption(name)):
-                    msg = ("Option %r in config file %r ignored: "
-                           "excluded by runtime environment" %
-                           (name, filename))
-                    warn(msg, RuntimeWarning)
-                else:
-                    self._error("Error reading config file %r: "
-                                "no such option %r" % (filename, exc.name))
+                self._file_error(
+                    "Error reading config file %r: "
+                    "no such option %r" % (filename, exc.name),
+                    name=name, filename=filename)
             except optparse.OptionValueError, exc:
                 msg = str(exc).replace('--' + name, repr(name), 1)
-                self._error("Error reading config file %r: "
-                            "%s" % (filename, msg))
+                self._file_error("Error reading config file %r: "
+                                 "%s" % (filename, msg),
+                                 name=name, filename=filename)
 
-    def parseArgsAndConfigFiles(self, args, config_files, plugins=None):
+    def parseArgsAndConfigFiles(self, args, config_files):
         values = self._parser.get_default_values()
         try:
             config = self._readConfiguration(config_files)
@@ -128,7 +126,7 @@ class ConfiguredDefaultsOptionParser(object):
             self._error(str(exc))
         else:
             self._applyConfigurationToValues(
-                self._parser, config, values, plugins)
+                self._parser, config, values)                
         return self._parser.parse_args(args, values)
 
 
@@ -219,9 +217,18 @@ class Config(object):
     __str__ = __repr__
 
     def _parseArgs(self, args, cfg_files):
-        parser = ConfiguredDefaultsOptionParser(self.getParser(),
-                                                self.configSection)
-        return parser.parseArgsAndConfigFiles(args, cfg_files, self.plugins)
+        def warn_sometimes(msg, name=None, filename=None):
+            if (hasattr(self.plugins, 'excludedOption') and
+                self.plugins.excludedOption(name)):
+                msg = ("Option %r in config file %r ignored: "
+                       "excluded by runtime environment" %
+                       (name, filename))
+                warn(msg, RuntimeWarning)
+            else:
+                raise ConfigError(msg)
+        parser = ConfiguredDefaultsOptionParser(
+            self.getParser(), self.configSection, file_error=warn_sometimes)
+        return parser.parseArgsAndConfigFiles(args, cfg_files)
 
     def configure(self, argv=None, doc=None):
         """Configure the nose running environment. Execute configure before
