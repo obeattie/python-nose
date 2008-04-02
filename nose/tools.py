@@ -169,62 +169,6 @@ def nottest(func):
     func.__test__ = False
     return func
 
-
-def transplant(module):
-    """
-    Make a function imported from module A appear as if it is located
-    in module B.
-
-    >>> from nose.util import resolve_name
-    >>> resolve_name.__module__
-    'nose.util'
-    >>> rn = transplant(__name__)(resolve_name)
-    >>> rn.__module__
-    'nose.tools'
-
-    The original function is not modified
-
-    >>> resolve_name.__module__
-    'nose.util'
-
-    Calling the transplanted function calls the original.
-
-    >>> rn('nose.tools') #doctest: +ELLIPSIS
-    <module 'nose.tools' ...>
-    >>> resolve_name('nose.tools') #doctest: +ELLIPSIS
-    <module 'nose.tools' ...>
-
-    """
-    def decorate(func):
-        def newfunc(*arg, **kw):
-            return func(*arg, **kw)
-        newfunc = make_decorator(func)(newfunc)
-        newfunc.__module__ = module
-        return newfunc
-    return decorate
-
-
-def transplant_class(cls, module):
-    """
-    Make a class appear to reside in `module`, rather than the module in which
-    it is actually defined.
-
-    >>> from nose.failure import Failure
-    >>> Failure.__module__
-    'nose.failure'
-    >>> Nf = transplant_class(Failure, __name__)
-    >>> Nf.__module__
-    'nose.tools'
-    >>> Nf.__name__
-    'Failure'
-    
-    """
-    class C(cls):
-        pass
-    C.__module__ = module
-    C.__name__ = cls.__name__
-    return C
-
 #
 # Expose assert* from unittest.TestCase
 # - give them pep8 style names

@@ -19,11 +19,9 @@ from nose.config import Config
 from nose.importer import Importer, add_path, remove_path
 from nose.selector import defaultSelector, TestAddress
 from nose.util import cmp_lineno, getpackage, isclass, isgenerator, ispackage, \
-    match_last, resolve_name
+    match_last, resolve_name, transplant_func, transplant_class
 from nose.suite import ContextSuiteFactory, ContextList, LazySuite
 
-# FIXME should be in util?
-from nose.tools import transplant, transplant_class
 
 log = logging.getLogger(__name__)
 #log.setLevel(logging.DEBUG)
@@ -485,7 +483,7 @@ class TestLoader(unittest.TestLoader):
                     return MethodTestCase(obj)
         elif isfunction(obj):
             if parent and obj.__module__ != parent.__name__:
-                obj = transplant(parent.__name__)(obj)
+                obj = transplant_func(obj, parent.__name__)
             if isgenerator(obj):
                 return self.loadTestsFromGenerator(obj, parent)
             else:
