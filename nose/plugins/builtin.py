@@ -13,7 +13,8 @@ builtins = (
     ('nose.plugins.failuredetail', 'FailureDetail'),
     ('nose.plugins.prof', 'Profile'),
     ('nose.plugins.skip', 'Skip'),
-    ('nose.plugins.testid', 'TestId')
+    ('nose.plugins.testid', 'TestId'),
+    ('nose.plugins.collect', 'CollectOnly')
     )
 
 for module, cls in builtins:
@@ -26,3 +27,4 @@ for module, cls in builtins:
     plug = getattr(plugmod, cls)
     plugins.append(plug)
     globals()[cls] = plug
+
