@@ -1,9 +1,15 @@
-
 """
-This plugin captures logging statements issued during test execution,
-appending any output captured to the error or failure output, should the test fail
-or raise an error. It is enabled by default but may be disabled with
-the options --nologcapture.
+This plugin captures logging statements issued during test
+execution, appending any output captured to the error or failure
+output, should the test fail or raise an error. It is enabled by
+default but may be disabled with the options --nologcapture.
+
+To remove any other installed logging handlers, use the
+--logging-clear-handlers option.
+
+When an error or failure occurs, captures log messages are attached to
+the running test in the test.capturedLogging attribute, and added to
+the error failure output.
 
 Status: http://code.google.com/p/python-nose/issues/detail?id=148
 """
@@ -22,25 +28,28 @@ except ImportError:
 
 log = logging.getLogger(__name__)
 
+
 class MyMemoryHandler(BufferingHandler):
     def flush(self):
         pass # do nothing
     def truncate(self):
         self.buffer = []
 
+
 class LogCapture(Plugin):
     """
     Log capture plugin. Enabled by default. Disable with --nologcapture.
     This plugin captures logging statement issued during test execution,
     appending any output captured to the error or failure output,
-    should the test fail or raise an error.
+    should the test fail or raise an error.    
     """
     enabled = True
     env_opt = 'NOSE_NOLOGCAPTURE'
     name = 'logcapture'
     score = 500
     logformat = '%(name)s: %(levelname)s: %(message)s'
-
+    clear = False
+    
     def options(self, parser, env=os.environ):
         parser.add_option(
             "", "--nologcapture", action="store_false",
@@ -50,16 +59,26 @@ class LogCapture(Plugin):
             "", "--logging-format", action="store", dest="logcapture_format",
             default=env.get('NOSE_LOGFORMAT') or self.logformat,
             help="logging statements formatting [NOSE_LOGFORMAT]")
+        parser.add_option(
+            "", "--logging-clear-handlers", action="store_true",
+            default=False, dest="logcapture_clear",
+            help="Clear all other logging handlers")
 
     def configure(self, options, conf):
         self.conf = conf
-        if not options.logcapture:
-            self.enabled = False
+        # Disable if explicitly disabled, or if logging is
+        # configured via logging config file
+        if not options.logcapture or conf.loggingConfig:
+            self.enabled = False        
         self.logformat = options.logcapture_format
-
-    def setup_loghandler(self):
+        self.clear = options.logcapture_clear
+        
+    def setupLoghandler(self):
         # setup our handler with root logger
         root_logger = logging.getLogger()
+        if self.clear:
+            for handler in root_logger.handlers:
+                root_logger.removeHandler(handler)
         # unless it's already there
         if self.handler not in root_logger.handlers:
             root_logger.addHandler(self.handler)
@@ -73,13 +92,13 @@ class LogCapture(Plugin):
         self.handler = MyMemoryHandler(1000)
         fmt = logging.Formatter(self.logformat)
         self.handler.setFormatter(fmt)
-        self.setup_loghandler()
+        self.setupLoghandler()
 
     def end(self):
         pass
 
     def beforeTest(self, test):
-        self.setup_loghandler()
+        self.setupLoghandler()
 
     def afterTest(self, test):
         self.handler.truncate()
@@ -89,7 +108,7 @@ class LogCapture(Plugin):
 
     def formatError(self, test, err):
         # logic flow copied from Capture.formatError
-        records = self.formatLogRecords()
+        test.capturedLogging = records = self.formatLogRecords()
         if not records:
             return err 
         ec, ev, tb = err
