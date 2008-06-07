@@ -108,7 +108,17 @@ class ContextSuite(LazySuite):
     failureException = unittest.TestCase.failureException
     was_setup = False
     was_torndown = False
-
+    classSetup = ('setup_class', 'setup_all', 'setupClass', 'setupAll',
+                     'setUpClass', 'setUpAll')
+    classTeardown = ('teardown_class', 'teardown_all', 'teardownClass',
+                     'teardownAll', 'tearDownClass', 'tearDownAll')
+    moduleSetup = ('setup_module', 'setupModule', 'setUpModule', 'setup')
+    moduleTeardown = ('teardown_module', 'teardownModule', 'tearDownModule',
+                      'teardown')
+    packageSetup = ('setup_package', 'setupPackage', 'setUpPackage')
+    packageTeardown = ('teardown_package', 'teardownPackage',
+                       'tearDownPackage')
+    
     def __init__(self, tests=(), context=None, factory=None,
                  config=None, resultProxy=None):
         log.debug("Context suite for %s (%s) (%s)", tests, context, id(self))
@@ -169,6 +179,34 @@ class ContextSuite(LazySuite):
             except:
                 result.addError(self, self.exc_info())
 
+    def hasFixtures(self):
+        context = self.context
+        if context is None:
+            return False
+        if self.implementsAnyFixture(context):
+            return True
+        # My context doesn't have any, but its ancestors might
+        factory = self.factory
+        if factory:
+            ancestors = factory.context.get(self, [])
+            for ancestor in ancestors:
+                if self.implementsAnyFixture(ancestor):
+                    return True
+        return False
+
+    def implementsAnyFixture(self, context):
+        if isclass(context):
+            names = self.classSetup + self.classTeardown
+        else:
+            names = self.moduleSetup + self.moduleTeardown
+            if hasattr(context, '__path__'):
+                names += self.packageSetup + self.packageTeardown
+        # If my context has any fixture attribute, I have fixtures
+        for m in names:
+            if hasattr(context, m):
+                return True
+        return False
+    
     def setUp(self):
         log.debug("suite %s setUp called, tests: %s", id(self), self._tests)
         if not self:
@@ -209,13 +247,11 @@ class ContextSuite(LazySuite):
             # the teardown in my teardown
             self.factory.was_setup[context] = self
         if isclass(context):
-            names = ('setup_class', 'setup_all', 'setupClass', 'setupAll',
-                     'setUpClass', 'setUpAll')
+            names = self.classSetup
         else:
-            names = ('setup_module', 'setupModule', 'setUpModule', 'setup')
+            names = self.moduleSetup
             if hasattr(context, '__path__'):
-                names = ('setup_package', 'setupPackage',
-                         'setUpPackage') + names
+                names += names
         try_run(context, names)
 
     def shortDescription(self):
@@ -261,14 +297,11 @@ class ContextSuite(LazySuite):
         if self.factory:
             self.factory.was_torndown[context] = self
         if isclass(context):
-            names = ('teardown_class', 'teardown_all', 'teardownClass',
-                     'teardownAll', 'tearDownClass', 'tearDownAll')
+            names = self.classTeardown
         else:
-            names = ('teardown_module', 'teardownModule', 'tearDownModule',
-                     'teardown')
+            names = self.moduleTeardown
             if hasattr(context, '__path__'):
-                names = ('teardown_package', 'teardownPackage',
-                         'tearDownPackage') + names
+                names += names
         try_run(context, names)
         self.config.plugins.stopContext(context)
 
