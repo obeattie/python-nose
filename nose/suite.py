@@ -120,7 +120,7 @@ class ContextSuite(LazySuite):
                        'tearDownPackage')
     
     def __init__(self, tests=(), context=None, factory=None,
-                 config=None, resultProxy=None):
+                 config=None, resultProxy=None, can_split=True):
         log.debug("Context suite for %s (%s) (%s)", tests, context, id(self))
         self.context = context
         self.factory = factory
@@ -129,6 +129,7 @@ class ContextSuite(LazySuite):
         self.config = config
         self.resultProxy = resultProxy
         self.has_run = False
+        self.can_split = can_split
         LazySuite.__init__(self, tests)
 
     def __repr__(self):
@@ -344,7 +345,7 @@ class ContextSuiteFactory(object):
         self.was_setup = {}
         self.was_torndown = {}
 
-    def __call__(self, tests):
+    def __call__(self, tests, **kw):
         """Return ``ContextSuite`` for tests. ``tests`` may either
         be a callable (in which case the resulting ContextSuite will
         have no parent context and be evaluated lazily) or an
@@ -354,15 +355,15 @@ class ContextSuiteFactory(object):
         outermost suites belonging to the outermost contexts.
         """
         log.debug("Create suite for %s", tests)
-        context = getattr(tests, 'context', None)
+        context = kw.pop('context', getattr(tests, 'context', None))
         log.debug("tests %s context %s", tests, context)
         if context is None:
             tests = self.wrapTests(tests)
             try:
                 context = self.findContext(tests)
             except MixedContextError:
-                return self.makeSuite(self.mixedSuites(tests), None)
-        return self.makeSuite(tests, context)
+                return self.makeSuite(self.mixedSuites(tests), None, **kw)
+        return self.makeSuite(tests, context, **kw)
         
     def ancestry(self, context):
         """Return the ancestry of the context (that is, all of the
@@ -401,10 +402,10 @@ class ContextSuiteFactory(object):
                     % (context, ctx))
         return context
 
-    def makeSuite(self, tests, context):
+    def makeSuite(self, tests, context, **kw):
         suite = self.suiteClass(
             tests, context=context, config=self.config, factory=self,
-            resultProxy=self.resultProxy)
+            resultProxy=self.resultProxy, **kw)
         if context is not None:
             self.suites.setdefault(context, []).append(suite)
             self.context.setdefault(suite, []).append(context)
