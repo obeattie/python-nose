@@ -374,6 +374,11 @@ class ContextSuiteFactory(object):
         log.debug("get ancestry %s", context)
         if context is None:
             return
+        # Methods include reference to module they are defined in, we
+        # don't want that, instead want the module the class is in now
+        # (classes are re-ancestored elsewhere).
+        if hasattr(context, 'im_class'):
+            context = context.im_class
         if hasattr(context, '__module__'):
             ancestors = context.__module__.split('.')
         elif hasattr(context, '__name__'):

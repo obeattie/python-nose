@@ -8,7 +8,6 @@ except ImportError:
     raise SkipTest('twisted not available; skipping')
 
 
-
 def teardown():
     # print "stopping reactor"
     stop_reactor()

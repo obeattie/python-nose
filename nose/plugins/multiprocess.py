@@ -90,7 +90,9 @@ class MultiProcessTestRunner(TextTestRunner):
 
         testQueue = Queue()
         resultQueue = Queue()
-        tasks = []
+        tasks = {}
+        completed = {}
+        workers = []
             
         result = self._makeResult()    
         start = time.time()
@@ -100,14 +102,12 @@ class MultiProcessTestRunner(TextTestRunner):
         for case in self.next_batch(test):
             test_addr = self.address(case)
             testQueue.put(test_addr, block=False)
-            tasks.append(test_addr)
+            tasks[test_addr] = None
             log.debug("Queued test %s (%s) to %s",
                       len(tasks), test_addr, testQueue)
             
         log.debug("Starting %s workers", self.config.multiprocess_workers)
         for i in range(self.config.multiprocess_workers):
-            testQueue.put('STOP', block=False)
-            # FIXME should be daemon?
             p = Process(target=runner, args=(i,
                                              testQueue,
                                              resultQueue,
@@ -116,23 +116,43 @@ class MultiProcessTestRunner(TextTestRunner):
                                              self.config))
             p.setDaemon(True)
             p.start()
+            workers.append(p)
             log.debug("Started worker process %s", i+1)
 
-        log.debug("Waiting for results (%s tasks)", len(tasks))
-        try:
-            num_tasks = len(tasks)
-            for i in range(num_tasks):
-                batch_result = resultQueue.get(
-                    timeout=self.config.multiprocess_timeout)                
-                log.debug(">> got result %s: %s", i, batch_result)
+        num_tasks = len(tasks)            
+        while tasks:
+            log.debug("Waiting for results (%s/%s tasks)",
+                      len(completed), num_tasks)
+            try:
+                addr, batch_result = resultQueue.get(
+                    timeout=self.config.multiprocess_timeout)
+                log.debug('Results received for %s', addr)
+                completed[addr] = batch_result
+                tasks.pop(addr)
                 self.consolidate(result, batch_result)
-        except Empty:
-            log.debug("Timed out with %s tasks pending", num_tasks - i)
-            # FIXME add a failure to result
+            except Empty:
+                log.debug("Timed out with %s tasks pending", len(tasks))
+                any_alive = False
+                for w in workers:
+                    if w.isAlive():
+                        any_alive = True
+                        break
+                if not any_alive:
+                    log.debug("All workers dead")
+                    break
+        log.debug("Completed %s/%s tasks (%s remain)",
+                  len(completed), num_tasks, len(tasks))
         stop = time.time()
+        
         result.printErrors()
         result.printSummary(start, stop)
         self.config.plugins.finalize(result)
+
+        # Tell all workers to stop
+        for w in workers:
+            if w.isAlive():
+                testQueue.put('STOP', block=False)
+        
         return result
 
     def address(self, case):
@@ -196,14 +216,14 @@ class MultiProcessTestRunner(TextTestRunner):
 
             
 def runner(ix, testQueue, resultQueue, loaderClass, resultClass, config):
-    resultQueue.canceljoin() # don't join on exit
+    # resultQueue.canceljoin() # don't join on exit
         
     log.debug("Worker %s executing", ix)
     loader = loaderClass(config=config)
 
     def get():
         log.debug("Worker %s get from test queue %s", ix, testQueue)
-        case = testQueue.get(block=False) # q must be fully populated
+        case = testQueue.get(timeout=config.multiprocess_timeout)
         log.debug("Worker %s got case %s", ix, case)
         return case
             
@@ -218,16 +238,25 @@ def runner(ix, testQueue, resultQueue, loaderClass, resultClass, config):
             result = makeResult()
             test = loader.loadTestsFromNames([test_addr])
             log.debug("Worker %s Test is %s", ix, test)
-            test(result)
-            tup = (
-                result.stream.getvalue(),
-                result.testsRun,
-                result.failures,
-                result.errors,
-                getattr(result, 'errorClasses', {}))
-            log.debug("Worker %s returning %s", ix, tup)
-            resultQueue.put(tup)
+            try:
+                # FIXME can't send back failures, errors, etc as is
+                # since cases can't be pickled; need to convert to
+                # something that can be pickled but also that consolidator
+                # can use
+                test(result)
+                tup = (
+                    result.stream.getvalue(),
+                    result.testsRun,
+                    result.failures,
+                    result.errors,
+                    getattr(result, 'errorClasses', {}))
+                log.debug("Worker %s returning %s", ix, tup)
+                resultQueue.put((test_addr, tup))
+            except:
+                ec, ev, tb = sys.exc_info()
+                resultQueue.put((test_addr, ("FAILED %s" % ec, 0, [], [], {})))
     except Empty:
+        log.debug("Worker %s timed out waiting for tasks", ix)
         resultQueue.close()
     else:
         resultQueue.close()
