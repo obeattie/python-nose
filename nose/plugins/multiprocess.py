@@ -236,7 +236,7 @@ class MultiProcessTestRunner(TextTestRunner):
         result.testsRun += testsRun
         result.failures.extend(failures)
         result.errors.extend(errors)
-        for key, (storage, label, isfail) in errorClasses:
+        for key, (storage, label, isfail) in errorClasses.items():
             if key not in result.errorClasses:
                 # Ordinarily storage is result attribute
                 # but it's only processed through the errorClasses
@@ -277,11 +277,9 @@ def runner(ix, testQueue, resultQueue, loaderClass, resultClass, config):
                 errors = [(TestLet(c), err) for c, err in result.errors]
                 errorClasses = {}
                 log.debug("result errorClasses %s", result.errorClasses)
-                #for key, (storage, label, isfail) in getattr(
-                #    result, 'errorClasses', {}):
-                #    errorClasses[key] = ([(TestLet(c), err) for c in storage],
-                #                         label, isfail)
-                
+                for key, (storage, label, isfail) in result.errorClasses.items():
+                    errorClasses[key] = ([(TestLet(c), err) for c in storage],
+                                         label, isfail)                
                 tup = (
                     result.stream.getvalue(),
                     result.testsRun,
