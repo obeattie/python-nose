@@ -1,8 +1,11 @@
 import logging
 import sys
 import time
+import traceback
 import unittest
+import nose.case
 from nose.core import TextTestRunner
+from nose import failure
 from nose import loader
 from nose.plugins.base import Plugin
 from nose.result import TextTestResult
@@ -10,14 +13,14 @@ from nose.suite import ContextSuite, ContextSuiteFactory
 from nose.util import test_address
 from Queue import Empty
 
-# log = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 # debugging repeat log messages
 class FakeLog:
     def __init__(self, out=sys.stderr):
         self.out = out
     def debug(self, msg, *arg):
         print >> self.out, "!", msg % arg
-log = FakeLog()
+#log = FakeLog()
         
 try:
     from processing import Process, Queue, Pool
@@ -28,6 +31,25 @@ try:
     from cStringIO import StringIO
 except ImportError:
     import StringIO
+
+
+class TestLet:
+    def __init__(self, case):
+        try:
+            self._id = case.id()
+        except AttributeError:
+            pass 
+        self._short_description = case.shortDescription()
+        self._str = str(case)
+
+    def id(self):
+        return self._id
+
+    def shortDescription(self):
+        return self._short_description
+
+    def __str__(self):
+        return self._str
 
 
 class MultiProcess(Plugin):
@@ -100,6 +122,12 @@ class MultiProcessTestRunner(TextTestRunner):
         # dispatch and collect results
         # put indexes only on queue because tests aren't picklable
         for case in self.next_batch(test):
+            log.debug("Next batch %s (%s)", case, type(case))
+            if (isinstance(case, nose.case.Test) and
+                isinstance(case.test, failure.Failure)):
+                log.debug("Case is a Failure")
+                case(result) # run here to capture the failure
+                continue
             test_addr = self.address(case)
             testQueue.put(test_addr, block=False)
             tasks[test_addr] = None
@@ -175,6 +203,11 @@ class MultiProcessTestRunner(TextTestRunner):
         return ':'.join(map(str, parts))
             
     def next_batch(self, test):
+        # allows tests or suites to mark themselves as not safe
+        # for multiprocess execution
+        if hasattr(test, 'context'):
+            if not getattr(test.context, '_multiprocess_', True):
+                return
         if ((isinstance(test, ContextSuite)
              and test.hasFixtures())
             or not getattr(test, 'can_split', True)
@@ -199,7 +232,6 @@ class MultiProcessTestRunner(TextTestRunner):
             # FIXME add a failure and return
             return 
         self.stream.write(output)
-        return
 
         result.testsRun += testsRun
         result.failures.extend(failures)
@@ -212,12 +244,10 @@ class MultiProcessTestRunner(TextTestRunner):
                 result.errorClasses[key] = ([], label, isfail)
             mystorage, _junk, _junk = result.errorClasses[key]
             mystorage.extend(storage)
-        log.debug("Ran % tests (%s)", testsRun, result.testsRun)
+        log.debug("Ran %s tests (%s)", testsRun, result.testsRun)
 
             
 def runner(ix, testQueue, resultQueue, loaderClass, resultClass, config):
-    # resultQueue.canceljoin() # don't join on exit
-        
     log.debug("Worker %s executing", ix)
     loader = loaderClass(config=config)
 
@@ -239,21 +269,32 @@ def runner(ix, testQueue, resultQueue, loaderClass, resultClass, config):
             test = loader.loadTestsFromNames([test_addr])
             log.debug("Worker %s Test is %s", ix, test)
             try:
-                # FIXME can't send back failures, errors, etc as is
-                # since cases can't be pickled; need to convert to
-                # something that can be pickled but also that consolidator
-                # can use
                 test(result)
+
+                # We can't send back failures, errors, etc as is
+                # since cases can't be pickled
+                failures = [(TestLet(c), err) for c, err in result.failures]
+                errors = [(TestLet(c), err) for c, err in result.errors]
+                errorClasses = {}
+                log.debug("result errorClasses %s", result.errorClasses)
+                #for key, (storage, label, isfail) in getattr(
+                #    result, 'errorClasses', {}):
+                #    errorClasses[key] = ([(TestLet(c), err) for c in storage],
+                #                         label, isfail)
+                
                 tup = (
                     result.stream.getvalue(),
                     result.testsRun,
-                    result.failures,
-                    result.errors,
-                    getattr(result, 'errorClasses', {}))
+                    failures,
+                    errors,
+                    errorClasses)
                 log.debug("Worker %s returning %s", ix, tup)
                 resultQueue.put((test_addr, tup))
             except:
+                # FIXME add exception info to errors list
                 ec, ev, tb = sys.exc_info()
+                log.debug("ec %s ev %s tb %s",
+                          ec, ev, traceback.format_tb(tb))
                 resultQueue.put((test_addr, ("FAILED %s" % ec, 0, [], [], {})))
     except Empty:
         log.debug("Worker %s timed out waiting for tasks", ix)
