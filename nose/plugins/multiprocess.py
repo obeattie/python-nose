@@ -107,12 +107,15 @@ class MultiProcessTestRunner(TextTestRunner):
         log.debug("Starting %s workers", self.config.multiprocess_workers)
         for i in range(self.config.multiprocess_workers):
             testQueue.put('STOP', block=False)
-            Process(target=runner, args=(i,
-                                         testQueue,
-                                         resultQueue,
-                                         self.loaderClass,
-                                         result.__class__,
-                                         self.config)).start()
+            # FIXME should be daemon?
+            p = Process(target=runner, args=(i,
+                                             testQueue,
+                                             resultQueue,
+                                             self.loaderClass,
+                                             result.__class__,
+                                             self.config))
+            p.setDaemon(True)
+            p.start()
             log.debug("Started worker process %s", i+1)
 
         log.debug("Waiting for results (%s tasks)", len(tasks))
@@ -201,7 +204,7 @@ def runner(ix, testQueue, resultQueue, loaderClass, resultClass, config):
     def get():
         log.debug("Worker %s get from test queue %s", ix, testQueue)
         case = testQueue.get(block=False) # q must be fully populated
-        log.debug("Worker got case %s", case)
+        log.debug("Worker %s got case %s", ix, case)
         return case
             
     def makeResult():
@@ -228,4 +231,5 @@ def runner(ix, testQueue, resultQueue, loaderClass, resultClass, config):
         resultQueue.close()
     else:
         resultQueue.close()
+    log.debug("Worker %s ending", ix)
 
