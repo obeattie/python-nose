@@ -180,22 +180,23 @@ class ContextSuite(LazySuite):
             except:
                 result.addError(self, self.exc_info())
 
-    def hasFixtures(self):
+    def hasFixtures(self, ctx_callback=None):
         context = self.context
         if context is None:
             return False
-        if self.implementsAnyFixture(context):
+        if self.implementsAnyFixture(context, ctx_callback=ctx_callback):
             return True
         # My context doesn't have any, but its ancestors might
         factory = self.factory
         if factory:
             ancestors = factory.context.get(self, [])
             for ancestor in ancestors:
-                if self.implementsAnyFixture(ancestor):
+                if self.implementsAnyFixture(
+                    ancestor, ctx_callback=ctx_callback):
                     return True
         return False
 
-    def implementsAnyFixture(self, context):
+    def implementsAnyFixture(self, context, ctx_callback):
         if isclass(context):
             names = self.classSetup + self.classTeardown
         else:
@@ -203,10 +204,14 @@ class ContextSuite(LazySuite):
             if hasattr(context, '__path__'):
                 names += self.packageSetup + self.packageTeardown
         # If my context has any fixture attribute, I have fixtures
+        fixt = False
         for m in names:
             if hasattr(context, m):
-                return True
-        return False
+                fixt = True
+                break
+        if ctx_callback is None:
+            return fixt
+        return ctx_callback(context, fixt)
     
     def setUp(self):
         log.debug("suite %s setUp called, tests: %s", id(self), self._tests)

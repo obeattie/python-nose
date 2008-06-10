@@ -70,12 +70,14 @@ class NoseOutputRedirectingPdb(_orp):
 doctest._OutputRedirectingPdb = NoseOutputRedirectingPdb    
 
 
+# FIXME this breaks id plugin
 class DoctestSuite(unittest.TestSuite):
-    """ Doctest suites are
-    parallelized at the module or file level only, since they may be
-    attached to objects that are not individually addressable (like
-    properties). This suite subclass is used when loading doctests
-    from a module to ensure that behavior.
+    """
+    Doctest suites are parallelizable at the module or file level only,
+    since they may be attached to objects that are not individually
+    addressable (like properties). This suite subclass is used when
+    loading doctests from a module to ensure that behavior.
+
     """
     can_split = False
     
@@ -84,6 +86,10 @@ class DoctestSuite(unittest.TestSuite):
         unittest.TestSuite.__init__(self, tests=tests)
 
 
+    def address(self):
+        return test_address(self.context)
+
+        
 class Doctest(Plugin):
     """
     Activate doctest plugin to find and run doctests in non-test modules.
@@ -130,14 +136,17 @@ class Doctest(Plugin):
             return
         tests.sort()
         module_file = src(module.__file__)
+        # FIXME this breaks the id plugin somehow (tests probably don't
+        # get wrapped in result proxy or something)
         suite = DoctestSuite(context=module)
         for test in tests:
             if not test.examples:
                 continue
             if not test.filename:
-                test.filename = module_file
+                test.filename = module_file            
             suite.addTest(DocTestCase(test))
-        yield suite
+        if suite._tests:
+            yield suite
             
     def loadTestsFromFile(self, filename):
         if self.extension and anyp(filename.endswith, self.extension):

@@ -87,6 +87,34 @@ class TestMultiProcessTestRunner(unittest.TestCase):
         print tests
         print [r.address(t) for t in tests]
         self.assertEqual(len(tests), 1)
+
+    def test_next_batch_can_split_set(self):
+
+        mod_with_fixt2 = imp.new_module('mod_with_fixt2')
+        sys.modules['mod_with_fixt2'] = mod_with_fixt2
+
+        def setup():
+            pass
+
+        class Test(T):
+            pass
+
+        class Test_fixt(T_fixt):
+            pass
+
+        mod_with_fixt2.Test = Test
+        mod_with_fixt2.Test_fixt = Test_fixt
+        mod_with_fixt2.setup = setup
+        mod_with_fixt2._multiprocess_can_split_ = True
+        Test.__module__ = 'mod_with_fixt2'
+        Test_fixt.__module__ = 'mod_with_fixt2'
+
+        r = multiprocess.MultiProcessTestRunner()
+        l = TestLoader()
+        tests = list(r.next_batch(l.loadTestsFromModule(mod_with_fixt2)))
+        print tests
+        self.assertEqual(len(tests), 3)
+        
             
 if __name__ == '__main__':
     unittest.main()

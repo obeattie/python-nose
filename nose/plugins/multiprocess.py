@@ -216,8 +216,9 @@ class MultiProcessTestRunner(TextTestRunner):
         if hasattr(test, 'context'):
             if not getattr(test.context, '_multiprocess_', True):
                 return
+
         if ((isinstance(test, ContextSuite)
-             and test.hasFixtures())
+             and test.hasFixtures(self.check_can_split))
             or not getattr(test, 'can_split', True)
             or not isinstance(test, unittest.TestSuite)):
             # regular test case, or a suite with context fixtures
@@ -231,6 +232,21 @@ class MultiProcessTestRunner(TextTestRunner):
             for case in test:
                 for batch in self.next_batch(case):
                     yield batch
+
+    def check_can_split(self, context, fixt):
+        """
+        Callback that we use to check whether the fixtures found in a
+        context or ancestor are ones we care about.
+
+        Contexts can tell us that their fixtures are reentrant by setting
+        _multiprocess_can_split_. So if we see that, we return False to
+        disregard those fixtures.
+        """
+        if not fixt:
+            return False
+        if getattr(context, '_multiprocess_can_split_', False):
+            return False
+        return True
 
     def consolidate(self, result, batch_result):
         log.debug("batch result is %s" , batch_result)
