@@ -21,9 +21,11 @@ from __future__ import generators
 
 import logging
 import os
+import unittest
 from inspect import getmodule
 from nose.plugins.base import Plugin
-from nose.util import anyp, getpackage, test_address, resolve_name, src, tolist
+from nose.util import anyp, getpackage, test_address, resolve_name, \
+     src, tolist, isproperty
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -66,6 +68,20 @@ class NoseOutputRedirectingPdb(_orp):
         if self.__debugger_used:
             _orp.set_continue(self)
 doctest._OutputRedirectingPdb = NoseOutputRedirectingPdb    
+
+
+class DoctestSuite(unittest.TestSuite):
+    """ Doctest suites are
+    parallelized at the module or file level only, since they may be
+    attached to objects that are not individually addressable (like
+    properties). This suite subclass is used when loading doctests
+    from a module to ensure that behavior.
+    """
+    can_split = False
+    
+    def __init__(self, tests=(), context=None):
+        self.context = context
+        unittest.TestSuite.__init__(self, tests=tests)
 
 
 class Doctest(Plugin):
@@ -114,12 +130,14 @@ class Doctest(Plugin):
             return
         tests.sort()
         module_file = src(module.__file__)
+        suite = DoctestSuite(context=module)
         for test in tests:
             if not test.examples:
                 continue
             if not test.filename:
                 test.filename = module_file
-            yield DocTestCase(test)
+            suite.addTest(DocTestCase(test))
+        yield suite
             
     def loadTestsFromFile(self, filename):
         if self.extension and anyp(filename.endswith, self.extension):
@@ -142,7 +160,8 @@ class Doctest(Plugin):
         """Look for doctests in the given object, which will be a
         function, method or class.
         """
-        doctests = self.finder.find(obj, module=getmodule(parent))
+        name = getattr(obj, '__name__', 'Unnammed %s' % type(obj))
+        doctests = self.finder.find(obj, module=getmodule(parent), name=name)
         if doctests:
             for test in doctests:
                 if len(test.examples) == 0:
@@ -199,7 +218,20 @@ class DocTestCase(doctest.DocTestCase):
     def address(self):
         if self._nose_obj is not None:
             return test_address(self._nose_obj)
-        return test_address(resolve_name(self._dt_test.name))
+        obj = resolve_name(self._dt_test.name)
+
+        if isproperty(obj):
+            # properties have no connection to the class they are in
+            # so we can't just look 'em up, we have to first look up
+            # the class, then stick the prop on the end
+            parts = self._dt_test.name.split('.')
+            class_name = '.'.join(parts[:-1])
+            cls = resolve_name(class_name)
+            base_addr = test_address(cls)
+            return (base_addr[0], base_addr[1],
+                    '.'.join([base_addr[2], parts[-1]]))
+        else:
+            return test_address(obj)
     
     # doctests loaded via find(obj) omit the module name
     # so we need to override id, __repr__ and shortDescription

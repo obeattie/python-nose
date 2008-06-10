@@ -185,7 +185,15 @@ class MultiProcessTestRunner(TextTestRunner):
 
     def address(self, case):
         if hasattr(case, 'address'):
-            file, mod, call = case.address()
+            try:
+                file, mod, call = case.address()
+            except:
+                import sys
+                import pdb
+                ec, ev, tb = sys.exc_info()
+                sys.stdout = sys.__stdout__
+                pdb.post_mortem(tb)
+                raise
         elif hasattr(case, 'context'):
             file, mod, call = test_address(case.context)
         else:
