@@ -70,7 +70,6 @@ class NoseOutputRedirectingPdb(_orp):
 doctest._OutputRedirectingPdb = NoseOutputRedirectingPdb    
 
 
-# FIXME this breaks id plugin
 class DoctestSuite(unittest.TestSuite):
     """
     Doctest suites are parallelizable at the module or file level only,
@@ -78,23 +77,30 @@ class DoctestSuite(unittest.TestSuite):
     addressable (like properties). This suite subclass is used when
     loading doctests from a module to ensure that behavior.
 
+    This class is used only if the plugin is not fully prepared;
+    in normal use, the loader's suiteClass is used.
+    
     """
     can_split = False
     
-    def __init__(self, tests=(), context=None):
+    def __init__(self, tests=(), context=None, can_split=False):
         self.context = context
+        self.can_split = can_split
         unittest.TestSuite.__init__(self, tests=tests)
-
 
     def address(self):
         return test_address(self.context)
 
+
+    def __str__(self):
+        return str(self._tests)
         
 class Doctest(Plugin):
     """
     Activate doctest plugin to find and run doctests in non-test modules.
     """
     extension = None
+    suiteClass = DoctestSuite
     
     def options(self, parser, env=os.environ):
         Plugin.options(self, parser, env)
@@ -122,6 +128,9 @@ class Doctest(Plugin):
         self.extension = tolist(options.doctestExtension)
         self.finder = doctest.DocTestFinder()
 
+    def prepareTestLoader(self, loader):
+        self.suiteClass = loader.suiteClass
+
     def loadTestsFromModule(self, module):
         if not self.matches(module.__name__):
             log.debug("Doctest doesn't want module %s", module)
@@ -138,15 +147,15 @@ class Doctest(Plugin):
         module_file = src(module.__file__)
         # FIXME this breaks the id plugin somehow (tests probably don't
         # get wrapped in result proxy or something)
-        suite = DoctestSuite(context=module)
+        cases = []
         for test in tests:
             if not test.examples:
                 continue
             if not test.filename:
                 test.filename = module_file            
-            suite.addTest(DocTestCase(test))
-        if suite._tests:
-            yield suite
+            cases.append(DocTestCase(test))
+        if cases:
+            yield self.suiteClass(cases, context=module, can_split=False)
             
     def loadTestsFromFile(self, filename):
         if self.extension and anyp(filename.endswith, self.extension):
