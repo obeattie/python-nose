@@ -23,9 +23,9 @@ class FakeLog:
 #log = FakeLog()
         
 try:
-    from processing import Process, Queue, Pool
+    from processing import Process, Queue, Pool, Event
 except ImportError:
-    Process = Queue = Pool = None
+    Process = Queue = Pool = Event = None
     log.debug("processing module not available")
 try:
     from cStringIO import StringIO
@@ -101,6 +101,7 @@ class MultiProcessTestRunner(TextTestRunner):
         super(MultiProcessTestRunner, self).__init__(**kw)
     
     def run(self, test):
+
         wrapper = self.config.plugins.prepareTest(test)
         if wrapper is not None:
             test = wrapper
@@ -115,8 +116,9 @@ class MultiProcessTestRunner(TextTestRunner):
         tasks = {}
         completed = {}
         workers = []
-            
-        result = self._makeResult()    
+        shouldStop = Event()
+        
+        result = self._makeResult()
         start = time.time()
         
         # dispatch and collect results
@@ -139,6 +141,7 @@ class MultiProcessTestRunner(TextTestRunner):
             p = Process(target=runner, args=(i,
                                              testQueue,
                                              resultQueue,
+                                             shouldStop,
                                              self.loaderClass,
                                              result.__class__,
                                              self.config))
@@ -158,6 +161,11 @@ class MultiProcessTestRunner(TextTestRunner):
                 completed[addr] = batch_result
                 tasks.pop(addr)
                 self.consolidate(result, batch_result)
+                if (self.config.stopOnError
+                    and not result.wasSuccessful()):
+                    # set the stop condition
+                    shouldStop.set()
+                    break
             except Empty:
                 log.debug("Timed out with %s tasks pending", len(tasks))
                 any_alive = False
@@ -271,7 +279,8 @@ class MultiProcessTestRunner(TextTestRunner):
         log.debug("Ran %s tests (%s)", testsRun, result.testsRun)
 
             
-def runner(ix, testQueue, resultQueue, loaderClass, resultClass, config):
+def runner(ix, testQueue, resultQueue, shouldStop,
+           loaderClass, resultClass, config):
     log.debug("Worker %s executing", ix)
     loader = loaderClass(config=config)
 
@@ -288,6 +297,8 @@ def runner(ix, testQueue, resultQueue, loaderClass, resultClass, config):
                            config=config)
     try:
         for test_addr in iter(get, 'STOP'):
+            if shouldStop.isSet():
+                break
             log.debug("Worker %s running test %s", ix, test_addr)
             result = makeResult()
             test = loader.loadTestsFromNames([test_addr])
