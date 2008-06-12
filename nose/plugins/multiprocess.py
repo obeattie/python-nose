@@ -106,7 +106,13 @@ class MultiProcessTestRunner(TextTestRunner):
         super(MultiProcessTestRunner, self).__init__(**kw)
     
     def run(self, test):
+        """
+        Execute the test (which may be a test suite). If the test is a suite,
+        distribute it out among as many processes as have been configured, at
+        as fine a level as is possible given the context fixtures defined in the
+        suite or any sub-suites.
 
+        """
         wrapper = self.config.plugins.prepareTest(test)
         if wrapper is not None:
             test = wrapper
@@ -121,6 +127,7 @@ class MultiProcessTestRunner(TextTestRunner):
         tasks = {}
         completed = {}
         workers = []
+        to_teardown = []
         shouldStop = Event()
         
         result = self._makeResult()
@@ -135,11 +142,31 @@ class MultiProcessTestRunner(TextTestRunner):
                 log.debug("Case is a Failure")
                 case(result) # run here to capture the failure
                 continue
-            test_addr = self.address(case)
-            testQueue.put(test_addr, block=False)
-            tasks[test_addr] = None
-            log.debug("Queued test %s (%s) to %s",
-                      len(tasks), test_addr, testQueue)
+            # handle shared fixtures
+            if isinstance(case, ContextSuite) and self.sharedFixtures(case):
+                log.debug("%s has shared fixtures", case)
+                try:
+                    case.setUp()
+                except (KeyboardInterrupt, SystemExit):
+                    raise
+                except:
+                    log.debug("%s setup failed", sys.exc_info())
+                    result.addError(case, sys.exc_info())
+                else:
+                    to_teardown.append(case)
+                    for _t in case:
+                        test_addr = self.address(_t)
+                        testQueue.put(test_addr, block=False)
+                        tasks[test_addr] = None
+                        log.debug("Queued shared-fixture test %s (%s) to %s",
+                                  len(tasks), test_addr, testQueue)
+                
+            else:
+                test_addr = self.address(case)
+                testQueue.put(test_addr, block=False)
+                tasks[test_addr] = None
+                log.debug("Queued test %s (%s) to %s",
+                          len(tasks), test_addr, testQueue)
             
         log.debug("Starting %s workers", self.config.multiprocess_workers)
         for i in range(self.config.multiprocess_workers):
@@ -183,6 +210,16 @@ class MultiProcessTestRunner(TextTestRunner):
                     break
         log.debug("Completed %s/%s tasks (%s remain)",
                   len(completed), num_tasks, len(tasks))
+
+        for case in to_teardown:
+            log.debug("Tearing down shared fixtures for %s", case)
+            try:
+                case.tearDown()
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except:
+                result.addError(case, sys.exc_info())
+        
         stop = time.time()
         
         result.printErrors()
@@ -222,7 +259,8 @@ class MultiProcessTestRunner(TextTestRunner):
         if call is not None:
             parts.append(call)
         return ':'.join(map(str, parts))
-            
+
+    # FIXME camel for consistency
     def next_batch(self, test):
         # allows tests or suites to mark themselves as not safe
         # for multiprocess execution
@@ -246,6 +284,7 @@ class MultiProcessTestRunner(TextTestRunner):
                 for batch in self.next_batch(case):
                     yield batch
 
+    # FIXME camel for consistency
     def check_can_split(self, context, fixt):
         """
         Callback that we use to check whether the fixtures found in a
@@ -260,6 +299,12 @@ class MultiProcessTestRunner(TextTestRunner):
         if getattr(context, '_multiprocess_can_split_', False):
             return False
         return True
+
+    def sharedFixtures(self, case):
+        context = getattr(case, 'context', None)
+        if not context:
+            return False
+        return getattr(context, '_multiprocess_shared_', False)            
 
     def consolidate(self, result, batch_result):
         log.debug("batch result is %s" , batch_result)
@@ -288,7 +333,8 @@ def runner(ix, testQueue, resultQueue, shouldStop,
            loaderClass, resultClass, config):
     log.debug("Worker %s executing", ix)
     loader = loaderClass(config=config)
-
+    loader.suiteClass.suiteClass = NoSharedFixtureContextSuite
+    
     def get():
         log.debug("Worker %s get from test queue %s", ix, testQueue)
         case = testQueue.get(timeout=config.multiprocess_timeout)
@@ -308,6 +354,7 @@ def runner(ix, testQueue, resultQueue, shouldStop,
             result = makeResult()
             test = loader.loadTestsFromNames([test_addr])
             log.debug("Worker %s Test is %s", ix, test)
+                
             try:
                 test(result)
 
@@ -341,3 +388,24 @@ def runner(ix, testQueue, resultQueue, shouldStop,
         resultQueue.close()
     log.debug("Worker %s ending", ix)
 
+
+
+class NoSharedFixtureContextSuite(ContextSuite):
+    """
+    Context suite that never fires shared fixtures.
+
+    When a context sets _multiprocess_shared_, fixtures in that context
+    are executed by the main process. Using this suite class prevents them
+    from executing in the runner process as well.
+    
+    """
+    
+    def setupContext(self, context):
+        if getattr(context, '_multiprocess_shared_', False):
+            return
+        super(NoSharedFixtureContextSuite, self).setupContext(context)
+
+    def teardownContext(self, context):
+        if getattr(context, '_multiprocess_shared_', False):
+            return
+        super(NoSharedFixtureContextSuite, self).teardownContext(context)
