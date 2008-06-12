@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 import time
 import traceback
@@ -15,11 +16,11 @@ from Queue import Empty
 
 log = logging.getLogger(__name__)
 # debugging repeat log messages
-class FakeLog:
-    def __init__(self, out=sys.stderr):
-        self.out = out
-    def debug(self, msg, *arg):
-        print >> self.out, "!", msg % arg
+#class FakeLog:
+#    def __init__(self, out=sys.stderr):
+#        self.out = out
+#    def debug(self, msg, *arg):
+#        print >> self.out, "!", msg % arg
 #log = FakeLog()
         
 try:
@@ -58,13 +59,13 @@ class MultiProcess(Plugin):
     """
     score = 1000
 
-    def options(self, parser, env={}):
+    def options(self, parser, env=os.environ):
         if Process is None:
             self.can_configure = False
             self.enabled = False
             return
         parser.add_option("--processes", action="store",
-                          default=env.get('NOSE_PROCESSES'),
+                          default=env.get('NOSE_PROCESSES', 0),
                           dest="multiprocess_workers",
                           help="Spread test run among this many processes. "
                           "Set a number equal to the number of processors "
@@ -78,9 +79,13 @@ class MultiProcess(Plugin):
 
     def configure(self, options, config):
         self.config = config
-        if options.multiprocess_workers:
+        try:
+            workers = int(options.multiprocess_workers)
+        except (TypeError, ValueError):
+            workers = 0
+        if workers:
             self.enabled = True
-            self.config.multiprocess_workers = int(options.multiprocess_workers)
+            self.config.multiprocess_workers = workers
             self.config.multiprocess_timeout = int(options.multiprocess_timeout)
     
     def prepareTestLoader(self, loader):
