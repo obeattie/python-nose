@@ -1,3 +1,77 @@
+"""
+Mutltiprocess: parallel testing
+-------------------------------
+
+The multiprocess plugin enables you to distribute your test run among a set of
+worker processes that run tests in parallel. This can speed up CPU-bound test
+runs (as long as the number of work processeses is around the number of
+processors or cores available), but is mainly useful for IO-bound tests which
+can benefit from massive parallelization, since most of the tests spend most
+of their time waiting for data to arrive from someplace else.
+
+How tests are distributed
+=========================
+
+The ideal case would be to dispatch each test to a worker process
+separately. This ideal is not attainable in all cases, however, because many
+test suites depend on context (class, module or package) fixtures.
+
+The plugin can't know (unless you tell it -- see below!) whether a given
+context fixture is re-entrant (that is, can be called many times
+concurrently), or may be shared among tests running in different
+processes. Therefore, if a context has fixtures, the default behavior is to
+dispatch the entire suite to a worker as a unit.
+
+Controlling distribution
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+There are two context-level variables that you can use to control this default
+behavior.
+
+If a context's fixtures are re-entrant, set `_multiprocess_can_split_ = True`
+in the context, and the plugin will dispatch tests in suites bound to that
+context as if the context had no fixtures. This means that the fixtures will
+execute multiple times, typically once per test, and concurrently.
+
+If a context's fixtures may be shared by tests running in different processes
+-- for instance a package-level fixture that starts an external http server or
+initializes a shared database -- then set `_multiprocess_shared_ = True` in
+the context. Fixtures for contexts so marked will execute in the primary nose
+process, and tests in those contexts will be individually dispatched to run in
+parallel.
+
+How results are collected and reported
+======================================
+
+As each test or suite executes in a worker process, results (failures, errors,
+and specially handled exceptions like SkipTest) are collected in that
+process. When the test or suite is complete, the results are returned to the
+main nose process. There, any progress output (dots) is printed, and the
+results from the test or suite combined into a consolidated result
+set. Finally when results have been received for all dispatched tests, or all
+workers have died, the result summary is output as normal.
+
+Beware!
+=======
+
+Not all test suites will benefit from, or even operate correctly using, this
+plugin. If you don't have multiple processors, CPU-bound tests will run more
+slowly than otherwise, for instance. There are also some differences in plugin
+interactions and behaviors due to the way in which tests are dispatched and
+loaded. In general, test loading under the plugin operates as if it were
+always in directed mode, not discovered mode. For instance, doctests in test
+modules will always be found when using this plugin and the doctest plugin
+together.
+
+But most likely the biggest issue you will face is concurrency. Unless you
+have kept your tests as religiously pure unit tests, with no side-effects, no
+ordering issues, and no external dependencies, chances are you will experience
+odd, intermittent and unexplainable failures and errors when using this
+plugin. This doesn't mean the plugin is broken: it means your test suite is
+not safe for concurrency.
+
+
+"""
 import logging
 import os
 import sys
