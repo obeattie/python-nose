@@ -84,7 +84,7 @@ from nose import failure
 from nose import loader
 from nose.plugins.base import Plugin
 from nose.result import TextTestResult
-from nose.suite import ContextSuite, ContextSuiteFactory
+from nose.suite import ContextSuite
 from nose.util import test_address
 from Queue import Empty
 
