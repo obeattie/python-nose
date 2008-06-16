@@ -94,6 +94,7 @@ class DoctestSuite(unittest.TestSuite):
 
     def __str__(self):
         return str(self._tests)
+
         
 class Doctest(Plugin):
     """
@@ -230,8 +231,8 @@ class DocTestCase(doctest.DocTestCase):
                  checker=None, obj=None):
         self._nose_obj = obj
         super(DocTestCase, self).__init__(
-            test, optionflags=optionflags, setUp=None, tearDown=None,
-            checker=None)
+            test, optionflags=optionflags, setUp=setUp, tearDown=tearDown,
+            checker=checker)
     
     def address(self):
         if self._nose_obj is not None:

@@ -6,6 +6,7 @@ def setup():
     print "setup called"
     called.append('setup')
 
+
 def teardown():
     print "teardown called"
     called.append('teardown')

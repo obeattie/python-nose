@@ -152,6 +152,9 @@ class MultiProcess(Plugin):
                           "test runner process. [NOSE_PROCESS_TIMEOUT]")
 
     def configure(self, options, config):
+        if not hasattr(options, 'multiprocess_workers'):
+            self.enabled = False
+            return
         self.config = config
         try:
             workers = int(options.multiprocess_workers)
