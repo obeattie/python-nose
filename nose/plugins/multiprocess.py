@@ -67,8 +67,8 @@ But most likely the biggest issue you will face is concurrency. Unless you
 have kept your tests as religiously pure unit tests, with no side-effects, no
 ordering issues, and no external dependencies, chances are you will experience
 odd, intermittent and unexplainable failures and errors when using this
-plugin. This doesn't mean the plugin is broken: it means your test suite is
-not safe for concurrency.
+plugin. This doesn't necessarily mean the plugin is broken: it may mean that
+your test suite is not safe for concurrency.
 
 
 """
@@ -385,10 +385,10 @@ class MultiProcessTestRunner(TextTestRunner):
         try:
             output, testsRun, failures, errors, errorClasses = batch_result
         except ValueError:
-            # FIXME add a failure and return
+            log.debug("result in unexpected format %s", batch_result)
+            failure.Failure(*sys.exc_info())(result)
             return 
         self.stream.write(output)
-
         result.testsRun += testsRun
         result.failures.extend(failures)
         result.errors.extend(errors)
@@ -410,9 +410,7 @@ def runner(ix, testQueue, resultQueue, shouldStop,
     loader.suiteClass.suiteClass = NoSharedFixtureContextSuite
     
     def get():
-        log.debug("Worker %s get from test queue %s", ix, testQueue)
         case = testQueue.get(timeout=config.multiprocess_timeout)
-        log.debug("Worker %s got case %s", ix, case)
         return case
             
     def makeResult():
@@ -420,48 +418,43 @@ def runner(ix, testQueue, resultQueue, shouldStop,
         return resultClass(stream, descriptions=1,
                            verbosity=config.verbosity,
                            config=config)
-    try:
-        for test_addr in iter(get, 'STOP'):
-            if shouldStop.isSet():
-                break
-            log.debug("Worker %s running test %s", ix, test_addr)
-            result = makeResult()
-            test = loader.loadTestsFromNames([test_addr])
-            log.debug("Worker %s Test is %s", ix, test)
-                
-            try:
-                test(result)
 
-                # We can't send back failures, errors, etc as is
-                # since cases can't be pickled
-                failures = [(TestLet(c), err) for c, err in result.failures]
-                errors = [(TestLet(c), err) for c, err in result.errors]
-                errorClasses = {}
-                log.debug("result errorClasses %s", result.errorClasses)
-                for key, (storage, label, isfail) in result.errorClasses.items():
-                    errorClasses[key] = ([(TestLet(c), err) for c in storage],
-                                         label, isfail)                
-                tup = (
-                    result.stream.getvalue(),
-                    result.testsRun,
-                    failures,
-                    errors,
-                    errorClasses)
-                log.debug("Worker %s returning %s", ix, tup)
-                resultQueue.put((test_addr, tup))
-            except:
-                # FIXME add exception info to errors list
-                ec, ev, tb = sys.exc_info()
-                log.debug("ec %s ev %s tb %s",
-                          ec, ev, traceback.format_tb(tb))
-                resultQueue.put((test_addr, ("FAILED %s" % ec, 0, [], [], {})))
-    except Empty:
-        log.debug("Worker %s timed out waiting for tasks", ix)
-        resultQueue.close()
-    else:
+    def batch(result):
+        failures = [(TestLet(c), err) for c, err in result.failures]
+        errors = [(TestLet(c), err) for c, err in result.errors]
+        errorClasses = {}
+        for key, (storage, label, isfail) in result.errorClasses.items():
+            errorClasses[key] = ([(TestLet(c), err) for c in storage],
+                                 label, isfail)                
+        return (
+            result.stream.getvalue(),
+            result.testsRun,
+            failures,
+            errors,
+            errorClasses)
+    try:
+        try:
+            for test_addr in iter(get, 'STOP'):
+                if shouldStop.isSet():
+                    break
+                result = makeResult()
+                test = loader.loadTestsFromNames([test_addr])
+                log.debug("Worker %s Test is %s (%s)", ix, test_addr, test)
+
+                try:
+                    test(result)
+                    resultQueue.put((test_addr, batch(result)))
+                except KeyboardInterrupt, SystemExit:
+                    raise
+                except:
+                    log.exception("Error running test or returning results")
+                    failure.Failure(*sys.exc_info())(result)
+                    resultQueue.put((test_addr, batch(result)))
+        except Empty:
+            log.debug("Worker %s timed out waiting for tasks", ix)
+    finally:
         resultQueue.close()
     log.debug("Worker %s ending", ix)
-
 
 
 class NoSharedFixtureContextSuite(ContextSuite):
