@@ -24,6 +24,7 @@ import os
 import unittest
 from inspect import getmodule
 from nose.plugins.base import Plugin
+from nose.suite import ContextSuite
 from nose.util import anyp, getpackage, test_address, resolve_name, \
      src, tolist, isproperty
 try:
@@ -91,6 +92,9 @@ class DoctestSuite(unittest.TestSuite):
     def address(self):
         return test_address(self.context)
 
+    def __iter__(self):
+        # 2.3 compat
+        return iter(self._tests)
 
     def __str__(self):
         return str(self._tests)
@@ -116,6 +120,11 @@ class Doctest(Plugin):
                           dest="doctestExtension",
                           help="Also look for doctests in files with "
                           "this extension [NOSE_DOCTEST_EXTENSION]")
+        parser.add_option('--doctest-fixtures', action="store",
+                          dest="doctestFixtures",
+                          help="Find fixtures for a doctest file in module "
+                          "with this name appended to the base name "
+                          "of the doctest file")
         # Set the default as a list, if given in env; otherwise
         # an additional value set on the command line will cause
         # an error.
@@ -127,6 +136,7 @@ class Doctest(Plugin):
         Plugin.configure(self, options, config)
         self.doctest_tests = options.doctest_tests
         self.extension = tolist(options.doctestExtension)
+        self.fixtures = options.doctestFixtures
         self.finder = doctest.DocTestFinder()
 
     def prepareTestLoader(self, loader):
@@ -166,12 +176,32 @@ class Doctest(Plugin):
                 doc = dh.read()
             finally:
                 dh.close()
+
+            fixture_context = None
+            if self.fixtures:
+                base, ext = os.path.splitext(name)
+                dirname = os.path.dirname(filename)
+                sys.path.append(dirname)
+                fixt_mod = base + self.fixtures
+                try:
+                    fixture_context = __import__(
+                        fixt_mod, globals(), locals(), ["nop"])
+                except ImportError, e:
+                    log.debug(
+                        "Could not import %s: %s (%s)", fixt_mod, e, sys.path)
+                log.debug("Fixture module %s resolved to %s",
+                          fixt_mod, fixture_context)
+                    
             parser = doctest.DocTestParser()
             test = parser.get_doctest(
                 doc, globs={'__file__': filename}, name=name,
                 filename=filename, lineno=0)
             if test.examples:
-                yield DocFileCase(test)
+                case = DocFileCase(test)
+                if fixture_context:
+                    yield ContextSuite(tests=(case,), context=fixture_context)
+                else:
+                    yield case
             else:
                 yield False # no tests to load
             

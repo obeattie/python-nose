@@ -267,8 +267,12 @@ class MultiProcessTestRunner(TextTestRunner):
                 addr, batch_result = resultQueue.get(
                     timeout=self.config.multiprocess_timeout)
                 log.debug('Results received for %s', addr)
-                completed[addr] = batch_result
-                tasks.pop(addr)
+                try:
+                    tasks.pop(addr)
+                except KeyError:
+                    log.debug("Got result for unknown task? %s", addr)
+                else:
+                    completed[addr] = batch_result
                 self.consolidate(result, batch_result)
                 if (self.config.stopOnError
                     and not result.wasSuccessful()):
