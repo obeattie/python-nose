@@ -178,6 +178,7 @@ class Doctest(Plugin):
                 dh.close()
 
             fixture_context = None
+            globs = {'__file__': filename}
             if self.fixtures:
                 base, ext = os.path.splitext(name)
                 dirname = os.path.dirname(filename)
@@ -191,13 +192,17 @@ class Doctest(Plugin):
                         "Could not import %s: %s (%s)", fixt_mod, e, sys.path)
                 log.debug("Fixture module %s resolved to %s",
                           fixt_mod, fixture_context)
-                    
+                if hasattr(fixture_context, 'globs'):
+                    globs = fixture_context.globs(globs)
             parser = doctest.DocTestParser()
             test = parser.get_doctest(
-                doc, globs={'__file__': filename}, name=name,
+                doc, globs=globs, name=name,
                 filename=filename, lineno=0)
             if test.examples:
-                case = DocFileCase(test)
+                case = DocFileCase(
+                    test,
+                    setUp=getattr(fixture_context, 'setup_test', None),
+                    tearDown=getattr(fixture_context, 'teardown_test', None))
                 if fixture_context:
                     yield ContextSuite(tests=(case,), context=fixture_context)
                 else:
