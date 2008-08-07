@@ -10,6 +10,8 @@ def setup_module(module):
 def setup_test(test):
     called.append(test)
     test.globs['count'] = len(called)
-
+setup_test.__test__ = False
+    
 def teardown_test(test):
     pass
+teardown_test.__test__ = False

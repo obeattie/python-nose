@@ -191,7 +191,7 @@ The module marked `_multiprocess_shared_` executes correctly.
     ----------------------------------------------------------------------
     Ran 3 tests in ...s
     <BLANKLINE>
-    Ok
+    OK
 
 As does the one not marked -- however in this case, `--processes=2`
 will do *nothing at all*: since the tests are in a module with
