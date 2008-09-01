@@ -30,12 +30,12 @@ fixtures.
 The multiprocess plugin can't know -- unless you tell it -- whether a given
 context fixture is re-entrant (that is, can be called many times
 concurrently), or may be shared among tests running in different processes, or
-must be run once and only once for a given set of tests, in the same process
-as the tests. Therefore, if a context has fixtures, the default behavior is to
-dispatch the entire suite to a worker as a unit, so that the fixtures are run
-once, in the same process as the tests. This of course is identical to how
-they are run when the multiprocess plugin is not active and all tests are run
-in a single process.
+must be run once and only once for a given set of tests in the same process as
+the tests. Therefore, if a context has fixtures, the default behavior is to
+dispatch the entire context suite to a worker as a unit, so that the fixtures
+are run once, in the same process as the tests. That of course how they are
+run when the multiprocess plugin is not active and all tests are run in a
+single process.
 
 Controlling distribution
 ^^^^^^^^^^^^^^^^^^^^^^^^

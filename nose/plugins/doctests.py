@@ -3,17 +3,45 @@ environment variable to enable collection and execution of doctests. doctest_
 tests are usually included in the tested package, not grouped into packages or
 modules of their own. For this reason, nose will try to detect and run doctest
 tests only in the non-test packages it discovers in the working
-directory. Doctests may also be placed into files other than python modules,
-in which case they can be collected and executed by using the
---doctest-extension switch or NOSE_DOCTEST_EXTENSION environment variable to
-indicate which file extension(s) to load.
+directory.
 
-doctest tests are run like any other test, with the exception that output
+Doctests may also be placed into files other than python modules, in which
+case they can be collected and executed by using the --doctest-extension
+switch or NOSE_DOCTEST_EXTENSION environment variable to indicate which file
+extension(s) to load.
+
+When loading doctests from non-module files, you may specify how to find
+modules that contains fixtures for the tests using the --doctest-fixtures
+switch. The value of that switch will be appended to the base name of each
+doctest file loaded to produce a module name. For instance, for a doctest file
+"widgets.rst" with the switch ``--doctest_fixtures=_fixt``, fixtures will be
+loaded from the module ``widgets_fixt.py`` if it exists.
+
+A fixtures module may define any or all of the following functions:
+
+* setup([module]) or setup_module([module])
+   
+  Called before any tests are run. You may raise SkipTest to skip all tests.
+  
+* teardown([module]) or teardown_module([module])
+
+  Called after all tests are run, if setup/setup_module did not raise an
+  unhandled exception.
+
+* setup_test(test)
+
+  Called before each test in the file. NOTE: the argument passed is a
+  doctest.DocTest instance, *not* a unittest.TestCase.
+  
+* teardown_test(test)
+ 
+  Called after each test in the file whose setup_test call did not raise an
+  unhandled exception. NOTE: the argument passed is a doctest.DocTest
+  instance, *not* a unittest.TestCase
+  
+Doctest tests are run like any other test, with the exception that output
 capture does not work, because doctest does its own output capture in the
 course of running a test.
-
-This module also includes a specialized version of nose.run() that
-makes it easier to write doctests that test test runs.
 
 .. _doctest: http://docs.python.org/lib/module-doctest.html
 """

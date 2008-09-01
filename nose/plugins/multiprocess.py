@@ -89,13 +89,6 @@ from nose.util import test_address
 from Queue import Empty
 
 log = logging.getLogger(__name__)
-# debugging repeat log messages
-#class FakeLog:
-#    def __init__(self, out=sys.stderr):
-#        self.out = out
-#    def debug(self, msg, *arg):
-#        print >> self.out, "!", msg % arg
-#log = FakeLog()
         
 try:
     from processing import Process, Queue, Pool, Event
