@@ -43,13 +43,13 @@ class TestLazySuite(unittest.TestCase):
         lazytests = []
         nonlazytests = []
         for t in lazy:
-            print "lazy %s" % t
+            print("lazy %s" % t)
             lazytests.append(t)
         for t in nonlazy:
-            print "nonlazy %s" % t
+            print("nonlazy %s" % t)
             nonlazytests.append(t)
-        slazy = map(str, lazytests)
-        snonlazy = map(str, nonlazytests)
+        slazy = list(map(str, lazytests))
+        snonlazy = list(map(str, nonlazytests))
         assert slazy == snonlazy, \
                "Lazy and Nonlazy produced different test lists (%s vs %s)" \
                % (slazy, snonlazy)
@@ -70,7 +70,7 @@ class TestLazySuite(unittest.TestCase):
 
         count = 0
         for test in lazy:
-            print test
+            print(test)
             assert test
             count += 1
         self.assertEqual(count, 2, "Expected 2 tests, got %s" % count)
@@ -117,7 +117,7 @@ class TestContextSuite(unittest.TestCase):
         assert isinstance(tests[0], ContextSuite)
         # suite is full of wrapped tests
         tests = [t for t in tests[0]]
-        cases = filter(lambda t: isinstance(t, case.Test), tests)
+        cases = [t for t in tests if isinstance(t, case.Test)]
         assert cases
         assert len(cases) == len(tests)
 

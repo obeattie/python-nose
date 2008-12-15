@@ -5,7 +5,7 @@
 import os
 import nose
 import sys
-from commands import getstatusoutput
+from subprocess import getstatusoutput
 
 success = 0
 
@@ -36,7 +36,7 @@ if SIMULATE:
 
     
 def runcmd(cmd):
-    print cmd
+    print(cmd)
     if not SIMULATE:
         (status,output) = getstatusoutput(cmd)
         if status != success:
@@ -44,7 +44,7 @@ def runcmd(cmd):
 
         
 def cd(dir):
-    print "cd %s" % dir
+    print("cd %s" % dir)
     if not SIMULATE:
         os.chdir(dir)
 

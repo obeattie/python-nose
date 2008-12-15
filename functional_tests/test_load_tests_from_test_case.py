@@ -15,15 +15,15 @@ class NoFixturePlug(Plugin):
     enabled = True
 
     def options(self, parser, env):
-        print "options"        
+        print("options")        
         pass
     
     def configure(self, options, conf):
-        print "configure"
+        print("configure")
         pass
 
     def loadTestsFromTestCase(self, testCaseClass):
-        print "Called!"
+        print("Called!")
         class Derived(testCaseClass):
             def setUp(self):
                 pass
@@ -46,7 +46,7 @@ class TestLoadTestsFromTestCaseHook(PluginTester, unittest.TestCase):
         expect = [
             'test_value (%s.Derived) ... ERROR' % __name__,
             'test_value (tests.Tests) ... ok']
-        print str(self.output)
+        print(str(self.output))
         for line in self.output:
             if expect:
                 self.assertEqual(line.strip(), expect.pop(0))

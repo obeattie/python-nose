@@ -38,8 +38,7 @@ class TestNoseCases(unittest.TestCase):
             def __new__(cls, name, bases, dct):
                 return type.__new__(cls, name, bases, dct)
         a = []
-        class TestClass(object):
-            __metaclass__ = TestType
+        class TestClass(object, metaclass=TestType):
             def test_func(self, a=a):
                 a.append(1)
 
@@ -118,13 +117,13 @@ class TestNoseTestWrapper(unittest.TestCase):
                         
         class TC(unittest.TestCase):
             def setUp(self):
-                print "TC setUp %s" % self
+                print("TC setUp %s" % self)
                 called.append('setUp')
             def runTest(self):
-                print "TC runTest %s" % self
+                print("TC runTest %s" % self)
                 called.append('runTest')
             def tearDown(self):
-                print "TC tearDown %s" % self
+                print("TC tearDown %s" % self)
                 called.append('tearDown')
 
         case = nose.case.Test(TC())

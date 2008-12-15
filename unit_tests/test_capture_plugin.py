@@ -50,7 +50,7 @@ class TestCapturePlugin(unittest.TestCase):
     def test_captures_stdout(self):
         c = Capture()
         c.start()
-        print "Hello"
+        print("Hello")
         c.end()
         self.assertEqual(c.buffer, "Hello\n")
 
@@ -61,7 +61,7 @@ class TestCapturePlugin(unittest.TestCase):
         c = Capture()
         c.start()
         try:
-            print "Oh my!"
+            print("Oh my!")
             raise Exception("boom")
         except:
             err = sys.exc_info()

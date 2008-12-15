@@ -10,8 +10,8 @@ class TestBug105(unittest.TestCase):
                                              'support', 'bug105'))
 
         l = TestLoader()
-        testmod = l.loadTestsFromDir(where).next()
-        print testmod
+        testmod = next(l.loadTestsFromDir(where))
+        print(testmod)
         testmod.setUp()
 
         def fix(t):
@@ -20,8 +20,8 @@ class TestBug105(unittest.TestCase):
                 return s[s.index(': ')+2:]
             return s
         
-        tests = map(fix, testmod)
-        print tests
+        tests = list(map(fix, testmod))
+        print(tests)
         self.assertEqual(tests, ['tests.test_z', 'tests.test_a',
                                  'tests.test_dz', 'tests.test_mdz',
                                  'tests.test_b'])

@@ -38,7 +38,7 @@ def sh(cmd):
     output = subprocess.Popen(
         [executable(), 'selftest.py'] + cmd.split(' '),
         cwd=root, stderr=subprocess.PIPE, close_fds=True).communicate()[1]
-    print munge_nose_output_for_doctest(output)
+    print(munge_nose_output_for_doctest(output))
 
     
 def executable():

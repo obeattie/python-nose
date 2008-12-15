@@ -8,7 +8,7 @@ function, and ContextSuite, a suite that can run fixtures
 its tests.
 
 """
-from __future__ import generators
+
 
 import logging
 import sys
@@ -55,14 +55,14 @@ class LazySuite(unittest.TestSuite):
     def addTest(self, test):
         self._precache.append(test)
 
-    def __nonzero__(self):
+    def __bool__(self):
         log.debug("tests in %s?", id(self))
         if self._precache:
             return True
         if self.test_generator is None:
             return False
         try:
-            test = self.test_generator.next()
+            test = next(self.test_generator)
             if test is not None:
                 self._precache.append(test)
                 return True
@@ -82,7 +82,7 @@ class LazySuite(unittest.TestSuite):
     def _set_tests(self, tests):
         self._precache = []
         is_suite = isinstance(tests, unittest.TestSuite)
-        if callable(tests) and not is_suite:
+        if hasattr(tests, '__call__') and not is_suite:
             self.test_generator = tests()
         elif is_suite:
             # Suites need special treatment: they must be called like
@@ -393,7 +393,7 @@ class ContextSuiteFactory(object):
         # don't want that, instead want the module the class is in now
         # (classes are re-ancestored elsewhere).
         if hasattr(context, 'im_class'):
-            context = context.im_class
+            context = context.__self__.__class__
         if hasattr(context, '__module__'):
             ancestors = context.__module__.split('.')
         elif hasattr(context, '__name__'):
@@ -406,7 +406,7 @@ class ContextSuiteFactory(object):
             ancestors.pop()
 
     def findContext(self, tests):
-        if callable(tests) or isinstance(tests, unittest.TestSuite):
+        if hasattr(tests, '__call__') or isinstance(tests, unittest.TestSuite):
             return None
         context = None
         for test in tests:
@@ -489,7 +489,7 @@ class ContextSuiteFactory(object):
             
     def wrapTests(self, tests):
         log.debug("wrap %s", tests)
-        if callable(tests) or isinstance(tests, unittest.TestSuite):
+        if hasattr(tests, '__call__') or isinstance(tests, unittest.TestSuite):
             log.debug("I won't wrap")
             return tests
         wrapped = []

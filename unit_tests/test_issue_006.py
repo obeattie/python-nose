@@ -9,11 +9,11 @@ class TestIssue006(unittest.TestCase):
         where = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                              'support', 'issue006'))
         l = TestLoader()
-        testmod = iter(l.loadTestsFromName(where)).next()
-        print testmod
+        testmod = next(iter(l.loadTestsFromName(where)))
+        print(testmod)
         testmod.setUp()
 
-        testcase = iter(testmod).next()
+        testcase = next(iter(testmod))
         expect = [
             ['tests.Test1.test_nested_generator'],
             ['tests.Test1.test_nested_generator_mult(1,)',
@@ -23,8 +23,8 @@ class TestIssue006(unittest.TestCase):
              'tests.Test1.test_normal_generator(2,)']
             ]
         for test in testcase:
-            tests = map(str, test)
-            print tests
+            tests = list(map(str, test))
+            print(tests)
             self.assertEqual(tests, expect.pop(0))
 
 if __name__ == '__main__':

@@ -6,7 +6,7 @@ nose's test loader implements the same basic functionality as its
 superclass, unittest.TestLoader, but extends it by more liberal
 interpretations of what may be a test and how a test may be named.
 """
-from __future__ import generators
+
 
 import logging
 import os
@@ -103,7 +103,7 @@ class TestLoader(unittest.TestLoader):
             if not ismethod(item):
                 return False
             return sel.wantMethod(item)
-        cases = filter(wanted, dir(testCaseClass))
+        cases = list(filter(wanted, dir(testCaseClass)))
         for base in testCaseClass.__bases__:
             for case in self.getTestCaseNames(base):
                 if case not in cases:
@@ -111,8 +111,9 @@ class TestLoader(unittest.TestLoader):
         # add runTest if nothing else picked
         if not cases and hasattr(testCaseClass, 'runTest'):
             cases = ['runTest']
-        if self.sortTestMethodsUsing:
-            cases.sort(self.sortTestMethodsUsing)
+        # FIXME
+        #if self.sortTestMethodsUsing:
+        #    cases.sort(self.sortTestMethodsUsing)
         return cases
 
     def loadTestsFromDir(self, path):
@@ -128,7 +129,8 @@ class TestLoader(unittest.TestLoader):
             paths_added = add_path(path, self.config)
 
         entries = os.listdir(path)
-        entries.sort(lambda a, b: match_last(a, b, self.config.testMatch))
+        # FIXME
+        # entries.sort(lambda a, b: match_last(a, b, self.config.testMatch))
         for entry in entries:
             # this hard-coded initial-dot test will be removed:
             # http://code.google.com/p/python-nose/issues/detail?id=82
@@ -181,7 +183,8 @@ class TestLoader(unittest.TestLoader):
         
         # pop paths
         if self.config.addPaths:
-            map(remove_path, paths_added)
+            for path in paths_added:
+                remove_path(path)
         plugins.afterDirectory(path)
 
     def loadTestsFromFile(self, filename):
@@ -197,7 +200,7 @@ class TestLoader(unittest.TestLoader):
                 # Plugins can yield False to indicate that they were
                 # unable to load tests from a file, but it was not an
                 # error -- the file just had no tests to load.
-                tests = filter(None, tests)
+                tests = [_f for _f in tests if _f]
                 return self.suiteClass(tests)
             else:
                 # Nothing was able to even try to load from this file
@@ -223,7 +226,7 @@ class TestLoader(unittest.TestLoader):
                     test_func, arg = (test[0], test[1:])
                 except ValueError:
                     test_func, arg = test[0], tuple()
-                if not callable(test_func):
+                if not hasattr(test_func, '__call__'):
                     test_func = getattr(m, test_func)
                 yield FunctionTestCase(test_func, arg=arg, descriptor=g)
         return self.suiteClass(generate, context=generator, can_split=False)
@@ -240,7 +243,7 @@ class TestLoader(unittest.TestLoader):
         """
         # convert the unbound generator method
         # into a bound method so it can be called below
-        cls = generator.im_class
+        cls = generator.__self__.__class__
         inst = cls()
         method = generator.__name__
         generator = getattr(inst, method)
@@ -251,7 +254,7 @@ class TestLoader(unittest.TestLoader):
                     test_func, arg = (test[0], test[1:])
                 except ValueError:
                     test_func, arg = test[0], tuple()
-                if not callable(test_func):
+                if not hasattr(test_func, '__call__'):
                     test_func = getattr(c, test_func)
                 if ismethod(test_func):
                     yield MethodTestCase(test_func, arg=arg, descriptor=g)
@@ -288,10 +291,10 @@ class TestLoader(unittest.TestLoader):
                         test_classes.append(test)
                 elif isfunction(test) and self.selector.wantFunction(test):
                     test_funcs.append(test)
-            test_classes.sort(lambda a, b: cmp(a.__name__, b.__name__))
-            test_funcs.sort(cmp_lineno)
-            tests = map(lambda t: self.makeTest(t, parent=module),
-                        test_classes + test_funcs)
+            test_classes.sort(key=lambda a: a.__name__)
+            test_funcs.sort(key=cmp_lineno)
+            tests = [self.makeTest(t, parent=module)
+                     for t in test_classes + test_funcs]
 
         # Now, descend into packages
         # FIXME can or should this be lazy?

@@ -13,7 +13,7 @@ class TestDiscovery(PluginTester, unittest.TestCase):
     suitepath = os.path.join(support, 'ipt')
     
     def runTest(self):
-        print str(self.output)
+        print(str(self.output))
 
         for line in self.output:
             if not line.strip():
@@ -43,7 +43,7 @@ class TestLoadFromNames(PluginTester, unittest.TestCase):
         return None
     
     def runTest(self):
-        print str(self.output)
+        print(str(self.output))
 
         for line in self.output:
             if not line.strip():

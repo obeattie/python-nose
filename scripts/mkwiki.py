@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from commands import getstatusoutput
+from subprocess import getstatusoutput
 from docutils.core import publish_string, publish_parts
 from docutils.nodes import SparseNodeVisitor
 from docutils.readers.standalone import Reader
@@ -59,7 +59,7 @@ def wiki_word(node):
             node['refuri'] = link
             return True
         node['refuri'] = ''.join(map(ucfirst, words(text)))
-    print "Unknown ref %s -> %s" % (orig, node['refuri'])
+    print("Unknown ref %s -> %s" % (orig, node['refuri']))
     del node['refname']
     node.resolved = True
     return True
@@ -142,9 +142,9 @@ class WikiVisitor(SparseNodeVisitor):
             self.indent = ' ' * self.list_depth
         
     def visit_reference(self, node):
-        if node.has_key('refuri'):
+        if 'refuri' in node:
             href = node['refuri']
-        elif node.has_key('refid'):
+        elif 'refid' in node:
             href = '#' + node['refid']
         else:
             href = None
@@ -189,7 +189,7 @@ class WikiVisitor(SparseNodeVisitor):
 
 
 def runcmd(cmd):
-    print cmd
+    print(cmd)
     (status,output) = getstatusoutput(cmd)
     if status != success:
         raise Exception(output)
@@ -286,10 +286,10 @@ def mkwiki(path):
 
     current = os.getcwd()
     w = Wiki(path)
-    for page, doc in pages.items():
-        print "====== %s ======" % page
+    for page, doc in list(pages.items()):
+        print("====== %s ======" % page)
         w.update_docs(page, doc)
-        print "====== %s ======" % page
+        print("====== %s ======" % page)
     os.chdir(current)
 
 
@@ -333,17 +333,17 @@ class Wiki(object):
         wikified = docs + div
         if not page_src:
             new_src = wikified + warning
-            print "! Adding new page"
+            print("! Adding new page")
         else:
             m = self.doc_re.search(page_src)
             if m:
-                print "! Updating doc section"
+                print("! Updating doc section")
                 new_src = self.doc_re.sub(wikified, page_src, 1)
             else:
-                print "! Adding new doc section"
+                print("! Adding new doc section")
                 new_src = wikified + page_src
         if new_src == page_src:
-            print "! No changes"
+            print("! No changes")
             return        
         # Restore any headers (lines marked by # at start of file)
         if headers:

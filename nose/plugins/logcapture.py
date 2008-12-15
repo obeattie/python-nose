@@ -26,9 +26,9 @@ from nose.plugins.base import Plugin
 from nose.util import ln
 
 try:
-    from cStringIO import StringIO
+    from io import StringIO
 except ImportError:
-    from StringIO import StringIO
+    from io import StringIO
 
 log = logging.getLogger(__name__)
 

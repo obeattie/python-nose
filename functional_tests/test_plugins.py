@@ -23,7 +23,7 @@ class TestPluginCalls(unittest.TestCase):
         conf = Config(plugins=man, stream=sys.stdout)
         t = TestProgram(defaultTest=wdir, config=conf,
                         argv=['test_plugin_calls_package1'], exit=False)
-        print man.calls()
+        print(man.calls())
         assert man.called
 
         self.assertEqual(
@@ -47,7 +47,7 @@ class TestPluginCalls(unittest.TestCase):
         conf = Config(plugins=man, stream=sys.stdout)
         t = TestProgram(defaultTest=wdir, config=conf,
                         argv=['test_plugin_calls_package1', '-v'], exit=False)
-        print man.calls()
+        print(man.calls())
         assert man.called
 
         self.assertEqual(

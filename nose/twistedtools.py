@@ -27,7 +27,7 @@ Or, more realistically::
 """
 
 import sys
-from Queue import Queue, Empty
+from queue import Queue, Empty
 from nose.tools import make_decorator, TimeExpired
 
 __all__ = [
@@ -156,7 +156,7 @@ def deferred(timeout=None):
             # Re-raise all exceptions
             if error is not None:
                 exc_type, exc_value, tb = error
-                raise exc_type, exc_value, tb
+                raise exc_type(exc_value).with_traceback(tb)
         wrapper = make_decorator(func)(wrapper)
         return wrapper
     return decorate

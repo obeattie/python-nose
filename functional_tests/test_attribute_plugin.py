@@ -15,9 +15,9 @@ class TestSimpleAttribute(PluginTester, unittest.TestCase):
     suitepath = os.path.join(support, 'att')
 
     def runTest(self):
-        print '*' * 70
-        print str(self.output)
-        print '*' * 70
+        print('*' * 70)
+        print(str(self.output))
+        print('*' * 70)
         
         assert 'test_attr.test_one ... ok' in self.output
         assert 'test_attr.test_two ... ok' in self.output
@@ -37,9 +37,9 @@ class TestNotSimpleAttribute(PluginTester, unittest.TestCase):
     suitepath = os.path.join(support, 'att')
 
     def runTest(self):
-        print '*' * 70
-        print str(self.output)
-        print '*' * 70
+        print('*' * 70)
+        print(str(self.output))
+        print('*' * 70)
         
         assert 'test_attr.test_one ... ok' not in self.output
         assert 'test_attr.test_two ... ok' not in self.output
@@ -59,9 +59,9 @@ class TestAttributeValue(PluginTester, unittest.TestCase):
     suitepath = os.path.join(support, 'att')
 
     def runTest(self):
-        print '*' * 70
-        print str(self.output)
-        print '*' * 70
+        print('*' * 70)
+        print(str(self.output))
+        print('*' * 70)
         
         assert 'test_attr.test_one ... ok' not in self.output
         assert 'test_attr.test_two ... ok' not in self.output
@@ -81,9 +81,9 @@ class TestAttributeArray(PluginTester, unittest.TestCase):
     suitepath = os.path.join(support, 'att')
 
     def runTest(self):
-        print '*' * 70
-        print str(self.output)
-        print '*' * 70
+        print('*' * 70)
+        print(str(self.output))
+        print('*' * 70)
         
         assert 'test_attr.test_one ... ok' in self.output
         assert 'test_attr.test_two ... ok' in self.output
@@ -103,9 +103,9 @@ class TestAttributeArrayAnd(PluginTester, unittest.TestCase):
     suitepath = os.path.join(support, 'att')
 
     def runTest(self):
-        print '*' * 70
-        print str(self.output)
-        print '*' * 70
+        print('*' * 70)
+        print(str(self.output))
+        print('*' * 70)
         
         assert 'test_attr.test_one ... ok' in self.output
         assert 'test_attr.test_two ... ok' not in self.output
@@ -125,9 +125,9 @@ class TestAttributeArrayOr(PluginTester, unittest.TestCase):
     suitepath = os.path.join(support, 'att')
 
     def runTest(self):
-        print '*' * 70
-        print str(self.output)
-        print '*' * 70
+        print('*' * 70)
+        print(str(self.output))
+        print('*' * 70)
         
         assert 'test_attr.test_one ... ok' in self.output
         assert 'test_attr.test_two ... ok' in self.output
@@ -148,9 +148,9 @@ if compat_24:
         suitepath = os.path.join(support, 'att')
 
         def runTest(self):
-            print '*' * 70
-            print str(self.output)
-            print '*' * 70
+            print('*' * 70)
+            print(str(self.output))
+            print('*' * 70)
 
             assert 'test_attr.test_one ... ok' not in self.output
             assert 'test_attr.test_two ... ok' not in self.output

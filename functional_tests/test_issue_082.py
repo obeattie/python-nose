@@ -1,9 +1,9 @@
 import os
 import re
 try:
-    from cStringIO import StringIO
+    from io import StringIO
 except ImportError:
-    from StringIO import StringIO
+    from io import StringIO
 import sys
 import unittest
 
@@ -47,7 +47,7 @@ class TestIncludeUnderscoreFiles(PluginTester, unittest.TestCase):
                    )
 
     def test_assert_info_in_output(self):
-        print self.output
+        print(self.output)
         # In future, all four test cases will be run.  Backwards-compatibility
         # means that can't be done in nose 0.10.
         assert '_mypackage._eggs' not in str(self.output)
@@ -63,7 +63,7 @@ class TestExcludeUnderscoreFilesByDefault(PluginTester, unittest.TestCase):
     suitepath = os.path.join(support, 'issue082')
 
     def test_assert_info_in_output(self):
-        print self.output
+        print(self.output)
         assert '_mypackage._eggs' not in str(self.output)
         assert '_mypackage.bacon' not in str(self.output)
         assert 'mypublicpackage._foo' not in str(self.output)

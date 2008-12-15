@@ -1,4 +1,4 @@
 def test():
-    print "something"
+    print("something")
     a = 4
     assert a == 2

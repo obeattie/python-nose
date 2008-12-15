@@ -9,9 +9,9 @@ import textwrap
 import tokenize
 
 try:
-    from cStringIO import StringIO
+    from io import StringIO
 except ImportError:
-    from StringIO import StringIO
+    from io import StringIO
 
 log = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ def inspect_traceback(tb):
     while inspect_lines:
         try:
             tokenize.tokenize(src.readline, exp)
-        except tokenize.TokenError, e:
+        except tokenize.TokenError as e:
             # this can happen if our inspectable region happens to butt up
             # against the end of a construct like a docstring with the closing
             # """ on separate line
@@ -180,14 +180,14 @@ class Expander:
             # Clean this junk up
             try:
                 val = self.locals[tok]
-                if callable(val):
+                if hasattr(val, '__call__'):
                     val = tok
                 else:
                     val = repr(val)
             except KeyError:
                 try:
                     val = self.globals[tok]
-                    if callable(val):
+                    if hasattr(val, '__call__'):
                         val = tok
                     else:
                         val = repr(val)

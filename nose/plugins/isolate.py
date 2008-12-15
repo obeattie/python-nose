@@ -67,7 +67,7 @@ class IsolationPlugin(Plugin):
         it was in when mod stack was pushed.
         """
         mods = self._mod_stack.pop()
-        to_del = [ m for m in sys.modules.keys() if m not in mods ]
+        to_del = [ m for m in list(sys.modules.keys()) if m not in mods ]
         if to_del:
             log.debug('removing sys modules entries: %s', to_del)
             for mod in to_del:

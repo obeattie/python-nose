@@ -25,7 +25,7 @@ class Test(unittest.TestCase):
     __test__ = False # do not collect
     def __init__(self, test, config=None, resultProxy=None):
         # sanity check
-        if not callable(test):
+        if not hasattr(test, '__call__'):
             raise TypeError("nose.case.Test called with argument %r that "
                             "is not callable. A callable is required."
                             % test)
@@ -323,7 +323,7 @@ class MethodTestCase(TestBase):
         self.test = test
         self.arg = arg
         self.descriptor = descriptor
-        self.cls = method.im_class
+        self.cls = method.__self__.__class__
         self.inst = self.cls()
         if self.test is None:
             method_name = self.method.__name__

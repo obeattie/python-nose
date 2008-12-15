@@ -133,7 +133,7 @@ class Coverage(Plugin):
     def begin(self):
         log.debug("Coverage begin")
         import coverage
-        self.skipModules = sys.modules.keys()[:]
+        self.skipModules = list(sys.modules.keys())[:]
         if self.coverErase:
             log.debug("Clearing previously collected coverage statistics")
             coverage.erase()
@@ -145,7 +145,7 @@ class Coverage(Plugin):
         import coverage
         coverage.stop()
         modules = [ module
-                    for name, module in sys.modules.items()
+                    for name, module in list(sys.modules.items())
                     if self.wantModuleCoverage(name, module) ]
         log.debug("Coverage report will cover modules: %s", modules)
         coverage.report(modules, file=stream)
@@ -157,10 +157,10 @@ class Coverage(Plugin):
             for m in modules:
                 if hasattr(m, '__name__') and hasattr(m, '__file__'):
                     files[m.__name__] = m.__file__
-            coverage.annotate(files.values())
+            coverage.annotate(list(files.values()))
             global_stats =  {'covered': 0, 'missed': 0, 'skipped': 0}
             file_list = []
-            for m, f in files.iteritems():
+            for m, f in files.items():
                 if f.endswith('pyc'):
                     f = f[:-1]
                 coverfile = f+',cover'

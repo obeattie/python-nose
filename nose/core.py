@@ -1,6 +1,6 @@
 """Implements nose test program and collector.
 """
-from __future__ import generators
+
 
 import logging
 import os
@@ -241,7 +241,7 @@ class TestProgram(unittest.TestProgram):
         if self.config.options.version:
             from nose import __version__
             sys.stdout = sys.__stdout__
-            print "%s version %s" % (os.path.basename(sys.argv[0]), __version__)
+            print("%s version %s" % (os.path.basename(sys.argv[0]), __version__))
             sys.exit(0)
 
         if self.config.options.showPlugins:
@@ -315,25 +315,25 @@ class TestProgram(unittest.TestProgram):
         v = self.config.verbosity
         self.config.plugins.sort()
         for p in self.config.plugins:            
-            print "Plugin %s" % p.name
+            print("Plugin %s" % p.name)
             if v >= 2:
-                print "  score: %s" % p.score
-                print '\n'.join(textwrap.wrap(p.help().strip(),
+                print("  score: %s" % p.score)
+                print('\n'.join(textwrap.wrap(p.help().strip(),
                                               initial_indent='  ',
-                                              subsequent_indent='  '))
+                                              subsequent_indent='  ')))
                 if v >= 3:
-                    print
-                    print "  Options:"
+                    print()
+                    print("  Options:")
                     parser = DummyParser()
                     p.addOptions(parser)
                     for opts, help in parser.options:
-                        print '  %s' % (', '.join(opts))
+                        print('  %s' % (', '.join(opts)))
                         if help:
-                            print '\n'.join(
+                            print('\n'.join(
                                 textwrap.wrap(help.strip(),
                                               initial_indent='    ',
-                                              subsequent_indent='    '))
-                print
+                                              subsequent_indent='    ')))
+                print()
 # backwards compatibility
 run_exit = main = TestProgram
 

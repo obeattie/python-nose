@@ -6,9 +6,9 @@ import traceback
 import unittest
 
 try:
-    from cStringIO import StringIO
+    from io import StringIO
 except ImportError:
-    from StringIO import StringIO
+    from io import StringIO
 
 from nose.inspector import inspect_traceback, Expander, tbsource
 
@@ -51,7 +51,7 @@ class TestExpander(unittest.TestCase):
     def test_get_tb_source_func(self):        
         # func frame
         def check_even(n):
-            print n
+            print(n)
             assert n % 2 == 0
         try:
             check_even(1)
@@ -103,14 +103,14 @@ class TestExpander(unittest.TestCase):
         S = {'setup':1}
         def check_even(n, nn):
             assert S['setup']
-            print n, nn
+            print(n, nn)
             assert n % 2 == 0 or nn % 2 == 0
         try:
             check_even(1, 3)
         except AssertionError:
             et, ev, tb = sys.exc_info()
             out = inspect_traceback(tb)
-            print "'%s'" % out.strip()
+            print("'%s'" % out.strip())
             self.assertEqual(out.strip(),
                              "assert {'setup': 1}['setup']\n" 
                              "    print 1, 3\n"
@@ -127,7 +127,7 @@ class TestExpander(unittest.TestCase):
         except AssertionError:
             et, ev, tb = sys.exc_info()
             out = inspect_traceback(tb)
-            print "'%s'" % out.strip()
+            print("'%s'" % out.strip())
             self.assertEqual(out.strip(),
                              "2 = 2\n"
                              ">>  assert 2 == 4")

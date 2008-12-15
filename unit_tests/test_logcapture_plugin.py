@@ -74,7 +74,7 @@ class TestLogCapturePlugin(object):
         parser = OptionParser()
         c.addOptions(parser, env)
         options, args = parser.parse_args(['foo'])
-        print options, args
+        print(options, args)
         c.configure(options, Config())
         c.start()
         for name in ['foobar.something', 'foo', 'foo.x', 'abara', 'bar.quux']:

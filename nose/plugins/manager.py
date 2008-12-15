@@ -257,9 +257,8 @@ class PluginManager(object):
 
     def sort(self, cmpf=None):
         if cmpf is None:
-            cmpf = lambda a, b: cmp(getattr(b, 'score', 1),
-                                    getattr(a, 'score', 1))
-        self._plugins.sort(cmpf)
+            cmpf = lambda a: getattr(a, 'score', 1)
+        self._plugins.sort(key=cmpf)
 
     def _get_plugins(self):
         return self._plugins
@@ -356,7 +355,7 @@ class EntryPointPluginManager(PluginManager):
                     plugcls = ep.load()
                 except KeyboardInterrupt:
                     raise
-                except Exception, e:
+                except Exception as e:
                     # never want a plugin load to kill the test run
                     # but we can't log here because the logger is not yet
                     # configured

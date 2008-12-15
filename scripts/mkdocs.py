@@ -43,13 +43,13 @@ def defining_class(cls, attr):
 
 
 def write(filename, tpl, ctx):
-    print filename
+    print(filename)
     ctx.setdefault('submenu', '')
     fp = open(filename, 'w')
     try:
         fp.write(tpl % ctx)
     except UnicodeEncodeError:
-        print ctx
+        print(ctx)
     fp.close()
 
 
@@ -90,7 +90,7 @@ def doc_word(node):
         name = re.sub(r'([A-Z])', r' \1', name).lower()
         node['refuri'] = '_'.join(name.split(' ')) + '.html'
 
-    print "Unknown ref %s -> %s" % (orig, node['refuri'])
+    print("Unknown ref %s -> %s" % (orig, node['refuri']))
     del node['refname']
     node.resolved = True
     return True
@@ -128,7 +128,7 @@ def formatargspec(func, exclude=()):
     except TypeError:
         return "(...)"
     if defaults:
-        defaults = map(clean_default, defaults)
+        defaults = list(map(clean_default, defaults))
     for a in exclude:
         if a in args:
             ix = args.index(a)
@@ -157,7 +157,7 @@ def to_html(rst):
 
 def document_module(mod):
     name = mod.qualified_name()
-    print name
+    print(name)
     body =  to_html(mod.doc())
 
     # for classes: prepend with note on what highlighted means
@@ -225,7 +225,7 @@ def get_classes(mod):
                     ordered.append(cls)
     except AttributeError:
         pass    
-    for name, cls in names.items():
+    for name, cls in list(names.items()):
         ordered.append(cls)
     wanted = []
     classes = set([])
@@ -239,7 +239,7 @@ def get_classes(mod):
 
 
 def document_class(cls):
-    print "  %s" % cls.qualified_name()
+    print("  %s" % cls.qualified_name())
     alias = False
     if hasattr(cls, 'alias_for'):
         alias = True
@@ -258,7 +258,7 @@ def document_class(cls):
             methods.sort(lambda a, b: cmp(a.name, b.name))
             html.append('<h3>Methods</h3>')
             for method in methods:
-                print "    %s" % method.qualified_name()
+                print("    %s" % method.qualified_name())
                 defined_in = defining_class(real_class, method.name)
                 if defined_in == real_class:
                     inherited = ''
@@ -282,7 +282,7 @@ def document_class(cls):
             attrs.sort(lambda a, b: cmp(a.name, b.name))
             html.append('<h3>Attributes</h3>')
             for attr in attrs:
-                print "    a %s" % attr.qualified_name()
+                print("    a %s" % attr.qualified_name())
                 defined_in = defining_class(real_class, attr.name)
                 if defined_in == real_class:
                     inherited = ''
@@ -307,7 +307,7 @@ def document_class(cls):
 
 
 def document_function(func):
-    print "  %s" % func.name
+    print("  %s" % func.name)
     html = [
         '<a name="%s"></a><div class="func section">' % func.name,
         '<span class="func name">%s' % func.name,
@@ -319,7 +319,7 @@ def document_function(func):
 
 
 def document_attribute(attr):
-    print "  %s" % attr.name
+    print("  %s" % attr.name)
     value = format_attr(attr.parent.obj, attr.name)
     html = [
         '<a name="%s"></a><div class="attr section">' % attr.name,
@@ -433,7 +433,7 @@ def main():
                 ec.append(att.replace('_', ''))
                 menu_links.setdefault(att.replace('_', ''), []).append(name)
         # padding evens the lines
-        print name
+        print(name)
         mdoc = {'body': to_html(textwrap.dedent('        ' + meth.__doc__))}
         argspec = formatargspec(meth)
         mdoc.update({'name': name,
@@ -474,9 +474,9 @@ def main():
         mod = resolve_name(modulename)
         cls = getattr(mod, clsname)
         filename = os.path.join(doc, 'plugin_%s.html' % modname)
-        print modname, filename
+        print(modname, filename)
         if not mod.__doc__:
-            print "No docs"
+            print("No docs")
             continue
         pdoc = {'body': to_html(mod.__doc__)}
         pdoc.update(std_info)
@@ -512,7 +512,7 @@ def main():
         if mod.name == 'nose':
             # no need to regenerate, this is the source of the doc index page
             continue
-        print mod.qualified_name()
+        print(mod.qualified_name())
         document_module(mod)
 
 
@@ -528,7 +528,7 @@ def main():
         section, _, _, _, _ = page
         sections.setdefault(section, []).append(page)
 
-    for section, pages in sections.items():
+    for section, pages in list(sections.items()):
         menu.append('<h2>%s</h2>' % section)
         menu.append('<ul>')
         pages.sort()

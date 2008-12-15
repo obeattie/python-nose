@@ -8,13 +8,12 @@ import re
 import sys
 import types
 import unittest
-from compiler.consts import CO_GENERATOR
-from types import ClassType, TypeType
+from types import GeneratorType
 
 log = logging.getLogger('nose')
 
 ident_re = re.compile(r'^[A-Za-z_][A-Za-z0-9_.]*$')
-class_types = (ClassType, TypeType)
+class_types = (type,)
 skip_pattern = r"(?:\.svn)|(?:[^.]+\.py[co])|(?:.*~)|(?:.*\$py\.class)"
 
 def ls_tree(dir_path="",
@@ -132,17 +131,10 @@ def file_like(name):
             or not ident_re.match(os.path.splitext(name)[0]))
 
 
-def cmp_lineno(a, b):
-    """Compare functions by their line numbers.
-    
-    >>> cmp_lineno(isgenerator, ispackage)
-    -1
-    >>> cmp_lineno(ispackage, isgenerator)
-    1
-    >>> cmp_lineno(isgenerator, isgenerator)
-    0
+def cmp_lineno(a):
+    """Get a function's line number, for use in sort    
     """
-    return cmp(func_lineno(a), func_lineno(b))
+    return func_lineno(a)
 
 
 def func_lineno(func):
@@ -153,7 +145,7 @@ def func_lineno(func):
         return func.compat_co_firstlineno
     except AttributeError:
         try:
-            return func.func_code.co_firstlineno
+            return func.__code__.co_firstlineno
         except AttributeError:
             return -1
 
@@ -167,10 +159,7 @@ def isclass(obj):
 
 
 def isgenerator(func):
-    try:
-        return func.func_code.co_flags & CO_GENERATOR != 0
-    except AttributeError:
-        return False
+    return type(func) == types.GeneratorType
 # backwards compat (issue #64)
 is_generator = isgenerator
 
@@ -407,7 +396,7 @@ def test_address(test):
         file = getattr(test, '__file__', None)
         module = getattr(test, '__name__', None)
         return (file, module, call)
-    if t == types.FunctionType or issubclass(t, type) or t == types.ClassType:
+    if t == types.FunctionType or issubclass(t, type) or t == type:
         module = getattr(test, '__module__', None)
         if module is not None:
             m = sys.modules[module]
@@ -419,7 +408,7 @@ def test_address(test):
     if t == types.InstanceType:
         return test_address(test.__class__)
     if t == types.MethodType:
-        cls_adr = test_address(test.im_class)
+        cls_adr = test_address(test.__self__.__class__)
         return (cls_adr[0], cls_adr[1],
                 "%s.%s" % (cls_adr[2], test.__name__))
     # handle unittest.TestCase instances
@@ -552,7 +541,7 @@ class odict(dict):
             self._keys.append(key)
 
     def __str__(self):
-        return "{%s}" % ', '.join(["%r: %r" % (k, v) for k, v in self.items()])
+        return "{%s}" % ', '.join(["%r: %r" % (k, v) for k, v in list(self.items())])
 
     def clear(self):
         super(odict, self).clear()
@@ -564,7 +553,7 @@ class odict(dict):
         return d
 
     def items(self):
-        return zip(self._keys, self.values())
+        return list(zip(self._keys, list(self.values())))
 
     def keys(self):
         return self._keys[:]
@@ -577,12 +566,12 @@ class odict(dict):
 
     def update(self, dict):
         super(odict, self).update(dict)
-        for key in dict.keys():
+        for key in list(dict.keys()):
             if key not in self._keys:
                 self._keys.append(key)
 
     def values(self):
-        return map(self.get, self._keys)
+        return list(map(self.get, self._keys))
 
 
 def transplant_func(func, module):

@@ -2,7 +2,7 @@
 import unittest, os
 from nose.plugins import PluginTester, Plugin
 from nose.tools import eq_
-from cStringIO import StringIO
+from io import StringIO
 
 class StubPlugin(Plugin):
     def options(self, parser, env=os.environ):

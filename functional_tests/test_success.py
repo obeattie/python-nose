@@ -15,7 +15,7 @@ class TestSingleTestPass(PluginTester, unittest.TestCase):
         # this test fails if the final terminating newline is not present (it
         # could still be written as a doctest -- PluginTester was just closer
         # to hand)
-        print self.output
+        print(self.output)
         output = remove_timings(str(self.output))
         assert output == """\
 test.test ... ok
@@ -32,7 +32,7 @@ class TestZeroTestsPass(PluginTester, unittest.TestCase):
     suitepath = os.path.join(support, 'empty')
 
     def test_zero_tests_pass(self):
-        print self.output
+        print(self.output)
         output = remove_timings(str(self.output))
         assert output == """\
 

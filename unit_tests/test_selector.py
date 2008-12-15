@@ -55,8 +55,8 @@ class TestSelector(unittest.TestCase):
         class TestType(type):
             def __new__(cls, name, bases, dct):
                 return type.__new__(cls, name, bases, dct)
-        class TestClass(object):
-            __metaclass__ = TestType
+        class TestClass(object, metaclass=TestType):
+            pass
         
         s = Selector(Config())
         assert not s.wantClass(Foo)

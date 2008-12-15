@@ -51,7 +51,7 @@ class Plugin(object):
         try:
             self.options(parser, env)
             self.can_configure = True
-        except OptionConflictError, e:
+        except OptionConflictError as e:
             warn("Plugin %s has conflicting option string: %s and will "
                  "be disabled" % (self, e), RuntimeWarning)
             self.enabled = False

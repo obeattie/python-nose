@@ -86,7 +86,7 @@ from nose.plugins.base import Plugin
 from nose.result import TextTestResult
 from nose.suite import ContextSuite
 from nose.util import test_address
-from Queue import Empty
+from queue import Empty
 from warnings import warn
 
 log = logging.getLogger(__name__)
@@ -123,9 +123,9 @@ def do_processing_imports():
                  "cannot be used", RuntimeWarning)
 
 try:
-    from cStringIO import StringIO
+    from io import StringIO
 except ImportError:
-    import StringIO
+    import io
 
 
 class TestLet:
@@ -433,7 +433,7 @@ class MultiProcessTestRunner(TextTestRunner):
         result.testsRun += testsRun
         result.failures.extend(failures)
         result.errors.extend(errors)
-        for key, (storage, label, isfail) in errorClasses.items():
+        for key, (storage, label, isfail) in list(errorClasses.items()):
             if key not in result.errorClasses:
                 # Ordinarily storage is result attribute
                 # but it's only processed through the errorClasses
@@ -469,7 +469,7 @@ def runner(ix, testQueue, resultQueue, shouldStop,
         failures = [(TestLet(c), err) for c, err in result.failures]
         errors = [(TestLet(c), err) for c, err in result.errors]
         errorClasses = {}
-        for key, (storage, label, isfail) in result.errorClasses.items():
+        for key, (storage, label, isfail) in list(result.errorClasses.items()):
             errorClasses[key] = ([(TestLet(c), err) for c, err in storage],
                                  label, isfail)
         return (
@@ -491,7 +491,7 @@ def runner(ix, testQueue, resultQueue, shouldStop,
                 try:
                     test(result)
                     resultQueue.put((test_addr, batch(result)))
-                except KeyboardInterrupt, SystemExit:
+                except KeyboardInterrupt as SystemExit:
                     raise
                 except:
                     log.exception("Error running test or returning results")

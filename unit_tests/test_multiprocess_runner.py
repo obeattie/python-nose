@@ -30,7 +30,7 @@ class TestMultiProcessTestRunner(unittest.TestCase):
         l = TestLoader()
         tests = list(r.next_batch(ContextSuite(
                     tests=[l.makeTest(T_fixt), l.makeTest(T)])))
-        print tests
+        print(tests)
         self.assertEqual(len(tests), 3)
 
     def test_next_batch_with_module_fixt(self):
@@ -50,7 +50,7 @@ class TestMultiProcessTestRunner(unittest.TestCase):
         r = multiprocess.MultiProcessTestRunner()
         l = TestLoader()
         tests = list(r.next_batch(l.loadTestsFromModule(mod_with_fixt)))
-        print tests
+        print(tests)
         self.assertEqual(len(tests), 1)
 
     def test_next_batch_with_module(self):
@@ -71,7 +71,7 @@ class TestMultiProcessTestRunner(unittest.TestCase):
         r = multiprocess.MultiProcessTestRunner()
         l = TestLoader()
         tests = list(r.next_batch(l.loadTestsFromModule(mod_no_fixt)))
-        print tests
+        print(tests)
         self.assertEqual(len(tests), 3)
 
     def test_next_batch_with_generator_method(self):
@@ -84,8 +84,8 @@ class TestMultiProcessTestRunner(unittest.TestCase):
         r = multiprocess.MultiProcessTestRunner()
         l = TestLoader()
         tests = list(r.next_batch(l.makeTest(Tg)))
-        print tests
-        print [r.address(t) for t in tests]
+        print(tests)
+        print([r.address(t) for t in tests])
         self.assertEqual(len(tests), 1)
 
     def test_next_batch_can_split_set(self):
@@ -112,7 +112,7 @@ class TestMultiProcessTestRunner(unittest.TestCase):
         r = multiprocess.MultiProcessTestRunner()
         l = TestLoader()
         tests = list(r.next_batch(l.loadTestsFromModule(mod_with_fixt2)))
-        print tests
+        print(tests)
         self.assertEqual(len(tests), 3)
         
             

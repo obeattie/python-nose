@@ -1,6 +1,6 @@
 import os
 import unittest
-from cStringIO import StringIO
+from io import StringIO
 from nose import SkipTest
 from nose.core import TestProgram
 from nose.config import Config
@@ -34,7 +34,7 @@ class TestTestProgram(unittest.TestCase):
                            config=Config(),
                            exit=False)
         res = runner.result
-        print stream.getvalue()
+        print(stream.getvalue())
         self.assertEqual(res.testsRun, 0,
                          "Expected to run 0 tests, ran %s" % res.testsRun)
         assert res.wasSuccessful()
@@ -54,7 +54,7 @@ class TestTestProgram(unittest.TestCase):
                            config=Config(),
                            exit=False)
         res = runner.result
-        print stream.getvalue()
+        print(stream.getvalue())
         self.assertEqual(res.testsRun, 5,
                          "Expected to run 5 tests, ran %s" % res.testsRun)
         assert res.wasSuccessful()
@@ -83,7 +83,7 @@ class TestTestProgram(unittest.TestCase):
                            config=Config(),
                            exit=False)
         res = runner.result
-        print stream.getvalue()
+        print(stream.getvalue())
         self.assertEqual(res.testsRun, 2,
                          "Expected to run 2 tests, ran %s" % res.testsRun)
         assert res.wasSuccessful()
@@ -108,7 +108,7 @@ class TestTestProgram(unittest.TestCase):
                            config=Config(stream=stream),
                            exit=False)
         res = runner.result
-        print stream.getvalue()
+        print(stream.getvalue())
 
         # some versions of twisted.trial.unittest.TestCase have
         # runTest in the base class -- this is wrong! But we have
@@ -124,32 +124,6 @@ class TestTestProgram(unittest.TestCase):
         assert len(res.errors) == 1
         assert len(res.failures) == 2
 
-    def test_issue_130(self):
-        """Collect and run tests in support/issue130 without error.
-
-        This tests that the result and error classes can handle string
-        exceptions.
-        """
-        import warnings
-        warnings.filterwarnings('ignore', category=DeprecationWarning,
-                                module='test')
-        
-        stream = StringIO()
-        runner = TestRunner(stream=stream, verbosity=2)
-
-        prog = TestProgram(defaultTest=os.path.join(support, 'issue130'),
-                           argv=['test_issue_130'],
-                           testRunner=runner,
-                           config=Config(stream=stream,
-                                         plugins=DefaultPluginManager()),
-                           exit=False)
-        res = runner.result
-        print stream.getvalue()
-        self.assertEqual(res.testsRun, 0) # error is in setup
-        assert not res.wasSuccessful()
-        assert res.errors
-        assert not res.failures
-
     def test_defaultTest_list(self):
         stream = StringIO()
         runner = TestRunner(stream=stream, verbosity=2)
@@ -161,7 +135,7 @@ class TestTestProgram(unittest.TestCase):
                            config=Config(),
                            exit=False)
         res = runner.result
-        print stream.getvalue()
+        print(stream.getvalue())
         self.assertEqual(res.testsRun, 7)
 
     def test_illegal_packages_not_selected(self):
@@ -175,7 +149,7 @@ class TestTestProgram(unittest.TestCase):
                                          plugins=DefaultPluginManager()),
                            exit=False)
         res = runner.result
-        print stream.getvalue()
+        print(stream.getvalue())
         self.assertEqual(res.testsRun, 0)
         assert res.wasSuccessful()
         assert not res.errors

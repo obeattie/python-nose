@@ -41,7 +41,7 @@ class TestPluginManager(unittest.TestCase):
         # multiple proxy: all plugins that return values get to run
         all = []
         for res in man.loadTestsFromFile('foo'):
-            print res
+            print(res)
             all.append(res)
         self.assertEqual(len(all), 2)
 

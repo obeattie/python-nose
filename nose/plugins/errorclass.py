@@ -86,7 +86,7 @@ Since we defined a Todo as a failure, the run was not successful.
     False
 """
 
-from new import instancemethod
+from types import MethodType as instancemethod
 from nose.plugins.base import Plugin
 from nose.result import TextTestResult
 from nose.util import isclass
@@ -97,7 +97,7 @@ class MetaErrorClass(type):
     """
     def __init__(self, name, bases, attr):
         errorClasses = []
-        for name, detail in attr.items():
+        for name, detail in list(attr.items()):
             if isinstance(detail, ErrorClass):
                 attr.pop(name)
                 for cls in detail:
@@ -121,8 +121,7 @@ class ErrorClass(object):
         return iter(self.errorClasses)
 
 
-class ErrorClassPlugin(Plugin):
-    __metaclass__ = MetaErrorClass
+class ErrorClassPlugin(Plugin, metaclass=MetaErrorClass):
     score = 1000
     errorClasses = ()
 
@@ -131,7 +130,7 @@ class ErrorClassPlugin(Plugin):
         if not isclass(err_cls):
             return
         classes = [e[0] for e in self.errorClasses]
-        if filter(lambda c: issubclass(err_cls, c), classes):
+        if [c for c in classes if issubclass(err_cls, c)]:
             return True
 
     def prepareTestResult(self, result):
@@ -160,7 +159,7 @@ def add_error_patch(result):
     errorclasses correctly.
     """
     return instancemethod(
-        TextTestResult.addError.im_func, result, result.__class__)
+        TextTestResult.addError.__func__, result, result.__class__)
 
 
 def print_errors_patch(result):
@@ -168,7 +167,7 @@ def print_errors_patch(result):
     as well.
     """
     return instancemethod(
-        TextTestResult.printErrors.im_func, result, result.__class__)
+        TextTestResult.printErrors.__func__, result, result.__class__)
 
 
 def wassuccessful_patch(result):
@@ -177,7 +176,7 @@ def wassuccessful_patch(result):
     but that still count as not success.
     """
     return instancemethod(
-        TextTestResult.wasSuccessful.im_func, result, result.__class__)
+        TextTestResult.wasSuccessful.__func__, result, result.__class__)
 
     
 if __name__ == '__main__':

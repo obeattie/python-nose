@@ -14,7 +14,7 @@ class TestImporter(unittest.TestCase):
         self._path = sys.path[:]
 
     def tearDown(self):
-        to_del = [ m for m in sys.modules.keys() if
+        to_del = [ m for m in list(sys.modules.keys()) if
                    m not in self._mods ]
         if to_del:
             for mod in to_del:
@@ -80,7 +80,7 @@ class TestImporter(unittest.TestCase):
         path = os.path.join(self.dir,
                             'package2', 'test_pak', 'test_sub', 'test_mod.py')
         mod = imp.importFromPath(path, 'test_pak.test_sub.test_mod')
-        print mod, dir(mod)
+        print(mod, dir(mod))
         assert 'test_pak' in sys.modules, 'test_pak was not imported?'
         test_pak = sys.modules['test_pak']
         assert hasattr(test_pak, 'test_sub'), "test_pak.test_sub was not set"

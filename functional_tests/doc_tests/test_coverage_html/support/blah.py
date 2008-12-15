@@ -1,6 +1,6 @@
 def dostuff():
-    print 'hi'
+    print('hi')
 
 
 def notcov():
-    print 'not covered'
+    print('not covered')

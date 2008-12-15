@@ -76,8 +76,7 @@ class TestUtils(unittest.TestCase):
         
         class CustomTestType(type):
             pass
-        class CustomTC(unittest.TestCase):
-            __metaclass__ = CustomTestType
+        class CustomTC(unittest.TestCase, metaclass=CustomTestType):
             def test_one(self):
                 pass
             def test_two(self):
@@ -121,10 +120,10 @@ class TestUtils(unittest.TestCase):
         # issue153 -- was not detecting custom typed classes...
         class TCType(type):
             pass
-        class TC_custom_type(object):
-            __metaclass__ = TCType
-        class TC_unittest_custom_type(unittest.TestCase):
-            __metaclass__ = TCType
+        class TC_custom_type(object, metaclass=TCType):
+            pass
+        class TC_unittest_custom_type(unittest.TestCase, metaclass=TCType):
+            pass
         
         assert util.isclass(TC), "failed to detect %s as class" % TC
         assert util.isclass(TC_Classic), "failed to detect %s as class" % TC_Classic

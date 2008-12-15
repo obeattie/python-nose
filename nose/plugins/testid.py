@@ -40,7 +40,7 @@ from nose.plugins import Plugin
 from nose.util import src
 
 try:
-    from cPickle import dump, load
+    from pickle import dump, load
 except ImportError:
     from pickle import dump, load
 
@@ -83,7 +83,7 @@ class TestId(Plugin):
         if self.shouldSave:
             fh = open(self.idfile, 'w')
             # save as {id: test address}
-            ids = dict(zip(self.tests.values(), self.tests.keys()))            
+            ids = dict(list(zip(list(self.tests.values()), list(self.tests.keys()))))            
             dump(ids, fh)
             fh.close()
             log.debug('Saved test ids: %s to %s', ids, self.idfile)
@@ -104,11 +104,11 @@ class TestId(Plugin):
             
         # I don't load any tests myself, only translate names like '#2'
         # into the associated test addresses
-        result = (None, map(self.tr, names))
+        result = (None, list(map(self.tr, names)))
         if not self.shouldSave:
             # got some ids in names, so make sure that the ids line
             # up in output with what I said they were last time
-            self.tests = dict(zip(self.ids.values(), self.ids.keys()))
+            self.tests = dict(list(zip(list(self.ids.values()), list(self.ids.keys()))))
         return result
 
     def makeName(self, addr):

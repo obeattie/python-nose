@@ -107,7 +107,7 @@ else:
                     self.distribution.tests_require)
 
             argv = ['nosetests'] 
-            for (option_name, cmd_name) in self.option_to_cmds.items():
+            for (option_name, cmd_name) in list(self.option_to_cmds.items()):
                 if option_name in option_blacklist:
                     continue
                 value = getattr(self, option_name)

@@ -2,7 +2,7 @@ import os
 import sys
 import unittest
 import warnings
-from cStringIO import StringIO
+from io import StringIO
 here = os.path.dirname(__file__)
 support = os.path.join(here, 'support')
 

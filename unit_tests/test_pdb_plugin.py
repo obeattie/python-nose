@@ -3,7 +3,7 @@ import unittest
 from nose.config import Config
 from nose.plugins import debug
 from optparse import OptionParser
-from StringIO import StringIO
+from io import StringIO
 
 class StubPdb:
     called = False

@@ -160,7 +160,7 @@ class AttributeSelector(Plugin):
             match = True
             for key, value in group:
                 obj_value = attribs.get(key)
-                if callable(value):
+                if hasattr(value, '__call__'):
                     if not value(key, attribs):
                         match = False
                         break
@@ -199,9 +199,8 @@ class AttributeSelector(Plugin):
         if self.validateAttrib(cls_attr) is not False:
             return None
         # Methods in __dict__.values() are functions, oddly enough.
-        methods = filter(isfunction, cls_attr.values())
-        wanted = filter(lambda m: m is not False,
-                        map(self.wantFunction, methods))
+        methods = list(filter(isfunction, list(cls_attr.values())))
+        wanted = [m for m in list(map(self.wantFunction, methods)) if m is not False]
         if wanted:
             return None
         return False
@@ -210,5 +209,5 @@ class AttributeSelector(Plugin):
         return self.validateAttrib(function.__dict__)
         
     def wantMethod(self, method):
-        attribs = AttributeGetter(method.im_class, method)
+        attribs = AttributeGetter(method.__self__.__class__, method)
         return self.validateAttrib(attribs)

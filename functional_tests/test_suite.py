@@ -14,7 +14,7 @@ class TestContextSuiteFactory(unittest.TestCase):
         sys.path.insert(0, os.path.join(support, 'package2'))
 
     def tearDown(self):
-        to_del = [ m for m in sys.modules.keys() if
+        to_del = [ m for m in list(sys.modules.keys()) if
                    m not in self._mods ]
         if to_del:
             for mod in to_del:

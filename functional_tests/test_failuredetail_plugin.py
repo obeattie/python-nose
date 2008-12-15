@@ -14,9 +14,9 @@ class TestFailureDetail(PluginTester, unittest.TestCase):
     suitepath = os.path.join(support, 'fdp')
 
     def runTest(self):
-        print '*' * 70
-        print str(self.output)
-        print '*' * 70
+        print('*' * 70)
+        print(str(self.output))
+        print('*' * 70)
 
         expect = \
         'AssertionError: a is not 4\n'
@@ -34,9 +34,9 @@ class TestFailureDetailWithCapture(PluginTester, unittest.TestCase):
     suitepath = os.path.join(support, 'fdp/test_fdp_no_capt.py')
 
     def runTest(self):
-        print '*' * 70
-        print str(self.output)
-        print '*' * 70
+        print('*' * 70)
+        print(str(self.output))
+        print('*' * 70)
 
         expect = \
         'AssertionError: a is not 4\n'

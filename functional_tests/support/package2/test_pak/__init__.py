@@ -1,4 +1,4 @@
-print "*** test_pak imported"
+print("*** test_pak imported")
 state = []
 
 def setup():

@@ -31,9 +31,9 @@ class TestPrepareTestCase_MakeAllFail(PluginTester, unittest.TestCase):
     suitepath = os.path.join(support, 'package2')
     
     def runTest(self):
-        print "x" * 70
-        print str(self.output)
-        print "x" * 70
+        print("x" * 70)
+        print(str(self.output))
+        print("x" * 70)
         for line in self.output:
             if line.startswith('test_pak'):
                 assert line.strip().endswith('FAIL'), \

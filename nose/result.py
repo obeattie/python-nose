@@ -51,7 +51,7 @@ class TextTestResult(_TextTestResult):
         except TypeError:
             # 2.3 compat
             exc_info = self._exc_info_to_string(err)
-        for cls, (storage, label, isfail) in self.errorClasses.items():
+        for cls, (storage, label, isfail) in list(self.errorClasses.items()):
             if isclass(ec) and issubclass(ec, cls):
                 storage.append((test, exc_info))
                 # Might get patched into a streamless result
@@ -76,7 +76,7 @@ class TextTestResult(_TextTestResult):
         """Overrides to print all errorClasses errors as well.
         """
         _TextTestResult.printErrors(self)
-        for cls in self.errorClasses.keys():
+        for cls in list(self.errorClasses.keys()):
             storage, label, isfail = self.errorClasses[cls]
             if isfail:
                 self.printErrorList(label, storage)
@@ -99,8 +99,8 @@ class TextTestResult(_TextTestResult):
         writeln()
 
         summary = {}
-        eckeys = self.errorClasses.keys()
-        eckeys.sort()
+        eckeys = list(self.errorClasses.keys())
+        eckeys.sort(key=lambda c: c.__name__)
         for cls in eckeys:
             storage, label, isfail = self.errorClasses[cls]
             count = len(storage)
@@ -116,7 +116,7 @@ class TextTestResult(_TextTestResult):
             write("FAILED")
         else:
             write("OK")
-        items = summary.items()
+        items = list(summary.items())
         if items:
             items.sort()
             write(" (")
@@ -133,7 +133,7 @@ class TextTestResult(_TextTestResult):
         """
         if self.errors or self.failures:
             return False
-        for cls in self.errorClasses.keys():
+        for cls in list(self.errorClasses.keys()):
             storage, label, isfail = self.errorClasses[cls]
             if not isfail:
                 continue

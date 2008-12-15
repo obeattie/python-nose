@@ -52,11 +52,9 @@ class Selector(object):
         """
         return ((self.match.search(name)
                  or (self.include and
-                     filter(None,
-                            [inc.search(name) for inc in self.include])))
+                     [_f for _f in [inc.search(name) for inc in self.include] if _f]))
                 and ((not self.exclude)
-                     or not filter(None,
-                                   [exc.search(name) for exc in self.exclude])
+                     or not [_f for _f in [exc.search(name) for exc in self.exclude] if _f]
                  ))
     
     def wantClass(self, cls):
@@ -89,9 +87,7 @@ class Selector(object):
         tail = op_basename(dirname)
         if ispackage(dirname):
             wanted = (not self.exclude
-                      or not filter(None,
-                                    [exc.search(tail) for exc in self.exclude]
-                                    ))
+                      or not [_f for _f in [exc.search(tail) for exc in self.exclude] if _f])
         else:
             wanted = (self.matches(tail)
                       or (self.config.srcDirs

@@ -1,2 +1,2 @@
 def setup():
-    print 'package2c setup'
+    print('package2c setup')
