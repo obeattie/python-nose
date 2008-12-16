@@ -115,6 +115,11 @@ def mods():
     TC2.__module__ = 'module'
     M['test_module_with_generators'].TestClass = TestClass
     TestClass.__module__ = 'test_module_with_generators'
+    TestClass.test_func.__module__ = 'test_module_with_generators'
+    TestClass.test_generator_inline.__module__ = 'test_module_with_generators'
+    TestClass.test_generator_method.__module__ = 'test_module_with_generators'
+    TestClass.test_generator_method_name.__module__ = 'test_module_with_generators'
+    TestClass.try_odd.__module__ = 'test_module_with_generators'
     M['test_module_with_generators'].test_func_generator = test_func_generator
     M['test_module_with_generators'].test_func_generator_name = \
         test_func_generator_name

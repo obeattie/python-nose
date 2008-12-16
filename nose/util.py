@@ -8,7 +8,6 @@ import re
 import sys
 import types
 import unittest
-from types import GeneratorType
 
 log = logging.getLogger('nose')
 
@@ -131,12 +130,6 @@ def file_like(name):
             or not ident_re.match(os.path.splitext(name)[0]))
 
 
-def cmp_lineno(a):
-    """Get a function's line number, for use in sort    
-    """
-    return func_lineno(a)
-
-
 def func_lineno(func):
     """Get the line number of a function. First looks for
     compat_co_firstlineno, then func_code.co_first_lineno.
@@ -149,6 +142,7 @@ def func_lineno(func):
         except AttributeError:
             return -1
 
+cmp_lineno = func_lineno
 
 def isclass(obj):
     """Is obj a class? inspect's isclass is too liberal and returns True
@@ -158,10 +152,7 @@ def isclass(obj):
     return obj_type in class_types or issubclass(obj_type, type)
 
 
-def isgenerator(func):
-    return type(func) == types.GeneratorType
-# backwards compat (issue #64)
-is_generator = isgenerator
+isgenerator = is_generator = inspect.isgeneratorfunction
 
 
 def ispackage(path):

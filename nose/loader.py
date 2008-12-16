@@ -95,15 +95,17 @@ class TestLoader(unittest.TestLoader):
         """Override to select with selector, unless
         config.getTestCaseNamesCompat is True
         """
+        log.debug("getTestCaseNames %s", testCaseClass)
         if self.config.getTestCaseNamesCompat:
             return unittest.TestLoader.getTestCaseNames(self, testCaseClass)
         
         def wanted(attr, cls=testCaseClass, sel=self.selector):
             item = getattr(cls, attr, None)
-            if not ismethod(item):
+            if not hasattr(item, '__call__'):
                 return False
             return sel.wantMethod(item)
-        cases = list(filter(wanted, dir(testCaseClass)))
+        cases = [case for case in dir(testCaseClass)
+                 if wanted(case)]
         for base in testCaseClass.__bases__:
             for case in self.getTestCaseNames(base):
                 if case not in cases:
@@ -114,6 +116,7 @@ class TestLoader(unittest.TestLoader):
         # FIXME
         #if self.sortTestMethodsUsing:
         #    cases.sort(self.sortTestMethodsUsing)
+        log.debug("cases for %s: %s", testCaseClass, cases)
         return cases
 
     def loadTestsFromDir(self, path):
@@ -241,9 +244,14 @@ class TestLoader(unittest.TestLoader):
         * a bound or unbound method, or
         * a method name
         """
+        log.debug("loadTestsFromGeneratorMethod(%s, %s)", generator, cls)
         # convert the unbound generator method
-        # into a bound method so it can be called below
-        cls = generator.__self__.__class__
+        # into a bound method so it can be called below        
+        try:
+            cls = generator.__self__.__class__
+        except AttributeError:
+            # not a bound method
+            pass
         inst = cls()
         method = generator.__name__
         generator = getattr(inst, method)
@@ -256,14 +264,12 @@ class TestLoader(unittest.TestLoader):
                     test_func, arg = test[0], tuple()
                 if not hasattr(test_func, '__call__'):
                     test_func = getattr(c, test_func)
-                if ismethod(test_func):
-                    yield MethodTestCase(test_func, arg=arg, descriptor=g)
-                elif isfunction(test_func):
+                if isfunction(test_func):
                     # In this case we're forcing the 'MethodTestCase'
                     # to run the inline function as its test call,
                     # but using the generator method as the 'method of
                     # record' (so no need to pass it as the descriptor)
-                    yield MethodTestCase(g, test=test_func, arg=arg)
+                    yield MethodTestCase(g, test=test_func, arg=arg, cls=c)
                 else:
                     yield Failure(TypeError,
                                   "%s is not a function or method" % test_func)
@@ -285,7 +291,9 @@ class TestLoader(unittest.TestLoader):
         if not discovered or self.selector.wantModule(module):
             for item in dir(module):
                 test = getattr(module, item, None)
-                # print "Check %s (%s) in %s" % (item, test, module.__name__)
+                #print("Check %s (%s) in %s (%s, %s)" % (
+                #    item, test, module.__name__,
+                #    isclass(test), isfunction(test)))
                 if isclass(test):
                     if self.selector.wantClass(test):
                         test_classes.append(test)
@@ -427,6 +435,7 @@ class TestLoader(unittest.TestLoader):
     def loadTestsFromTestCase(self, testCaseClass):
         """Load tests from a unittest.TestCase subclass.
         """
+        log.debug("Load tests from test case class %s", testCaseClass)
         cases = []
         plugins = self.config.plugins
         for case in plugins.loadTestsFromTestCase(testCaseClass):
@@ -451,7 +460,7 @@ class TestLoader(unittest.TestLoader):
         """
         def wanted(attr, cls=cls, sel=self.selector):
             item = getattr(cls, attr, None)
-            if not ismethod(item):
+            if not hasattr(item, '__call__'):
                 return False
             return sel.wantMethod(item)
         cases = [self.makeTest(getattr(cls, case), cls)
@@ -464,6 +473,7 @@ class TestLoader(unittest.TestLoader):
         """Given a test object and its parent, return a test case
         or test suite.
         """
+        log.debug("Make test from %s (%s)", obj, type(obj))
         plug_tests = []
         for test in self.config.plugins.makeTest(obj, parent):
             plug_tests.append(test)
@@ -485,20 +495,19 @@ class TestLoader(unittest.TestLoader):
                 return self.loadTestsFromTestCase(obj)
             else:
                 return self.loadTestsFromTestClass(obj)
-        elif ismethod(obj):
-            if parent is None:
-                parent = obj.__class__
-            if issubclass(parent, unittest.TestCase):
-                return parent(obj.__name__)
-            else:
-                if isgenerator(obj):
-                    return self.loadTestsFromGeneratorMethod(obj, parent)
-                else:
-                    return MethodTestCase(obj)
         elif isfunction(obj):
+            if parent and isclass(parent):
+                if issubclass(parent, unittest.TestCase):
+                    return parent(obj.__name__)
+                else:
+                    if isgenerator(obj):
+                        return self.loadTestsFromGeneratorMethod(obj, parent)
+                    else:
+                        return MethodTestCase(obj, cls=parent)
             if parent and obj.__module__ != parent.__name__:
                 obj = transplant_func(obj, parent.__name__)
             if isgenerator(obj):
+                log.debug("%s is generator", obj)
                 return self.loadTestsFromGenerator(obj, parent)
             else:
                 return FunctionTestCase(obj)

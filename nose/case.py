@@ -297,7 +297,8 @@ class MethodTestCase(TestBase):
     """
     __test__ = False # do not collect
     
-    def __init__(self, method, test=None, arg=tuple(), descriptor=None):
+    def __init__(self, method, test=None, arg=tuple(), descriptor=None,
+                 cls=None):
         """Initialize the MethodTestCase.
 
         Required argument:
@@ -318,12 +319,17 @@ class MethodTestCase(TestBase):
 
         * descriptor -- the function, other than the test, that should be used
           to construct the test name. This is to support generator methods.
+
+        * cls -- the class of the method. Required if an unbound method is
+          passed, since an unbound method is just a function.
         """
         self.method = method
         self.test = test
         self.arg = arg
         self.descriptor = descriptor
-        self.cls = method.__self__.__class__
+        if cls is None:
+            cls = method.__self__.__class__
+        self.cls = cls
         self.inst = self.cls()
         if self.test is None:
             method_name = self.method.__name__
