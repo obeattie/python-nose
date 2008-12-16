@@ -356,9 +356,11 @@ class MethodTestCase(TestBase):
         plugin configuration) result in the loading of this test.
         """
         if self.descriptor is not None:
-            return test_address(self.descriptor)
+            meth = self.descriptor
         else:
-            return test_address(self.method)
+            meth = self.method
+        mod, file, cname = test_address(self.cls)
+        return (mod, file, "%s.%s" % (cname, meth.__name__))
 
     def _context(self):
         return self.cls

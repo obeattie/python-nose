@@ -85,14 +85,12 @@ class TestUtils(unittest.TestCase):
         foo_funct = case.FunctionTestCase(baz)
         foo_functu = unittest.FunctionTestCase(baz)
 
-        foo_mtc = case.MethodTestCase(Foo.bar)
+        foo_mtc = case.MethodTestCase(Foo.bar, cls=Foo)
 
         me = absfile(__file__)
         self.assertEqual(test_address(baz),
                          (me, __name__, 'baz'))
         assert test_address(Foo) == (me, __name__, 'Foo')
-        assert test_address(Foo.bar) == (me, __name__,
-                                              'Foo.bar')
         assert test_address(f) == (me, __name__, 'Foo')
         assert test_address(f.bar) == (me, __name__, 'Foo.bar')
         assert test_address(nose) == (absfile(nose.__file__), 'nose', None)

@@ -27,7 +27,7 @@ class TestNoseCases(unittest.TestCase):
             def test_func(self, a=a):
                 a.append(1)
 
-        case = nose.case.MethodTestCase(TestClass.test_func)
+        case = nose.case.MethodTestCase(TestClass.test_func, cls=TestClass)
         case(res)
         assert a[0] == 1
 
@@ -42,7 +42,7 @@ class TestNoseCases(unittest.TestCase):
             def test_func(self, a=a):
                 a.append(1)
 
-        case = nose.case.MethodTestCase(TestClass.test_func)
+        case = nose.case.MethodTestCase(TestClass.test_func, cls=TestClass)
         case(res)
         assert a[0] == 1
 
@@ -57,7 +57,7 @@ class TestNoseCases(unittest.TestCase):
             def test_func(self):
                 called.append('test')
 
-        case = nose.case.MethodTestCase(TestClass.test_func)
+        case = nose.case.MethodTestCase(TestClass.test_func, cls=TestClass)
         case(res)
         self.assertEqual(called, ['setup', 'test', 'teardown'])
 
@@ -66,7 +66,8 @@ class TestNoseCases(unittest.TestCase):
                 called.append('setup')
                 raise Exception("failed")
         called[:] = []
-        case = nose.case.MethodTestCase(TestClassFailingSetup.test_func)
+        case = nose.case.MethodTestCase(TestClassFailingSetup.test_func,
+                                        cls=TestClassFailingSetup)
         case(res)
         self.assertEqual(called, ['setup'])        
 
@@ -76,7 +77,8 @@ class TestNoseCases(unittest.TestCase):
                 raise Exception("failed")
             
         called[:] = []
-        case = nose.case.MethodTestCase(TestClassFailingTest.test_func)
+        case = nose.case.MethodTestCase(TestClassFailingTest.test_func,
+                                        cls=TestClassFailingTest)
         case(res)
         self.assertEqual(called, ['setup', 'test', 'teardown'])     
         
@@ -188,17 +190,18 @@ class TestNoseTestWrapper(unittest.TestCase):
             dummy, arg=(1,), descriptor=test))
         self.assertEqual(case.address(), (fl, __name__, 'test'))
 
-        case = nose.case.Test(nose.case.MethodTestCase(Test.test))
+        case = nose.case.Test(nose.case.MethodTestCase(Test.test, cls=Test))
         self.assertEqual(case.address(), (fl, __name__, 'Test.test'))
 
         case = nose.case.Test(
             nose.case.MethodTestCase(Test.try_something, arg=(1,2,),
-                                     descriptor=Test.test_gen))
+                                     descriptor=Test.test_gen, cls=Test))
         self.assertEqual(case.address(),
                          (fl, __name__, 'Test.test_gen'))
 
         case = nose.case.Test(
-            nose.case.MethodTestCase(Test.test_gen, test=dummy, arg=(1,)))
+            nose.case.MethodTestCase(
+            Test.test_gen, test=dummy, arg=(1,), cls=Test))
         self.assertEqual(case.address(),
                          (fl, __name__, 'Test.test_gen'))
 
@@ -219,7 +222,7 @@ class TestNoseTestWrapper(unittest.TestCase):
         case = nose.case.Test(nose.case.FunctionTestCase(test))
         self.assertEqual(case.context, sys.modules[__name__])
 
-        case = nose.case.Test(nose.case.MethodTestCase(Test.test))
+        case = nose.case.Test(nose.case.MethodTestCase(Test.test, cls=Test))
         self.assertEqual(case.context, Test)
 
     def test_short_description(self):

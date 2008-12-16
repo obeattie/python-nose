@@ -396,8 +396,6 @@ def test_address(test):
                 file = os.path.abspath(file)
         call = getattr(test, '__name__', None)
         return (file, module, call)
-    if t == types.InstanceType:
-        return test_address(test.__class__)
     if t == types.MethodType:
         cls_adr = test_address(test.__self__.__class__)
         return (cls_adr[0], cls_adr[1],
@@ -416,6 +414,8 @@ def test_address(test):
             method_name = test._testMethodName
         return (cls_adr[0], cls_adr[1],
                 "%s.%s" % (cls_adr[2], method_name))
+    if isclass(type(t)):
+        return test_address(test.__class__)
     raise TypeError("I don't know what %s is (%s)" % (test, t))
 test_address.__test__ = False # do not collect
 

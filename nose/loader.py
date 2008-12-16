@@ -264,7 +264,7 @@ class TestLoader(unittest.TestLoader):
                     test_func, arg = test[0], tuple()
                 if not hasattr(test_func, '__call__'):
                     test_func = getattr(c, test_func)
-                if isfunction(test_func):
+                if hasattr(test_func, '__call__'):
                     # In this case we're forcing the 'MethodTestCase'
                     # to run the inline function as its test call,
                     # but using the generator method as the 'method of
