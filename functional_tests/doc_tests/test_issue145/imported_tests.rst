@@ -11,7 +11,7 @@ For example, consider this collection of packages:
     >>> import os
     >>> support = os.path.join(os.path.dirname(__file__), 'support')
     >>> from nose.util import ls_tree
-    >>> print ls_tree(support) # doctest: +REPORT_NDIFF
+    >>> print(ls_tree(support)) # doctest: +REPORT_NDIFF
     |-- package1
     |   |-- __init__.py
     |   `-- test_module.py

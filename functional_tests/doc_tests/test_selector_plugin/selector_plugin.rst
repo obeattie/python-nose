@@ -19,7 +19,7 @@ In this example, the project to be tested consists of a module and
 package and associated tests, laid out like this::
 
     >>> from nose.util import ls_tree
-    >>> print ls_tree(support)
+    >>> print(ls_tree(support))
     |-- mymodule.py
     |-- mypackage
     |   |-- __init__.py

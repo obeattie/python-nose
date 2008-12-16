@@ -18,7 +18,7 @@ method.
     >>> from nose.plugins.manager import RestrictedPluginManager
     >>> class StartPlugin(Plugin):
     ...     def startTest(self, test):
-    ...         print "started %s" % test
+    ...         print("started %s" % test)
 
 .. Note ::
 
@@ -86,4 +86,4 @@ error is raised.
     >>> run(argv=argv, plugins=restricted) # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    ConfigError: Error reading config file '...bad.cfg': no such option 'with-meltedcheese'
+    nose.config.ConfigError: Error reading config file '...bad.cfg': no such option 'with-meltedcheese'

@@ -135,6 +135,7 @@ class AccessDecorator(object):
 def blankline_separated_blocks(text):
     block = []
     for line in text.splitlines(True):
+        line = str(line)
         block.append(line)
         if not line.strip():
             yield "".join(block)

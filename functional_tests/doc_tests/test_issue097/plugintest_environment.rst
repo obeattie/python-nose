@@ -29,7 +29,7 @@ environment it's given by nose.
     ...         self.conf = conf
     ...
     ...     def options(self, parser, env={}):
-    ...         print "env:", env
+    ...         print("env:", env)
 
 To test the argv, we use a config class that prints the argv it's
 given by nose.  We need to monkeypatch nose.config.Config, so that we
@@ -40,7 +40,7 @@ can test the cases where that is used as the default.
     >>> class PrintArgvConfig(old_config):
     ...
     ...     def configure(self, argv=None, doc=None):
-    ...         print "argv:", argv
+    ...         print("argv:", argv)
     ...         old_config.configure(self, argv, doc)
 
     >>> nose.config.Config = PrintArgvConfig
