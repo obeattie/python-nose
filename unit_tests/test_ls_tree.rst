@@ -7,7 +7,7 @@
     >>> dir_path = tempfile.mkdtemp()
 
     >>> def create_file(filename):
-    ...     fd = os.open(filename, os.O_WRONLY|os.O_CREAT, 0666)
+    ...     fd = os.open(filename, os.O_WRONLY|os.O_CREAT, 0x0666)
     ...     os.close(fd)
 
     >>> os.mkdir(os.path.join(dir_path, "top"))
@@ -32,7 +32,7 @@
     Note that files matching skip_pattern (by default SVN files,
     backup files and compiled Python files) are ignored
 
-    >>> print ls_tree(os.path.join(dir_path, "top"))
+    >>> print(ls_tree(os.path.join(dir_path, "top")))
     |-- file
     |-- file2
     |-- .notsvn
