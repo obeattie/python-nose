@@ -81,7 +81,7 @@ class TestId(Plugin):
 
     def finalize(self, result):
         if self.shouldSave:
-            fh = open(self.idfile, 'w')
+            fh = open(self.idfile, 'wb')
             # save as {id: test address}
             ids = dict(list(zip(list(self.tests.values()), list(self.tests.keys()))))            
             dump(ids, fh)
@@ -94,7 +94,7 @@ class TestId(Plugin):
         """
         log.debug('ltfn %s %s', names, module)
         try:
-            fh = open(self.idfile, 'r')
+            fh = open(self.idfile, 'rb')
             self.ids = load(fh)
             log.debug('Loaded test ids %s from %s', self.ids, self.idfile)
             fh.close()
