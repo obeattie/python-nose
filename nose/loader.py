@@ -113,9 +113,7 @@ class TestLoader(unittest.TestLoader):
         # add runTest if nothing else picked
         if not cases and hasattr(testCaseClass, 'runTest'):
             cases = ['runTest']
-        # FIXME
-        #if self.sortTestMethodsUsing:
-        #    cases.sort(self.sortTestMethodsUsing)
+        cases.sort()
         log.debug("cases for %s: %s", testCaseClass, cases)
         return cases
 
@@ -132,8 +130,7 @@ class TestLoader(unittest.TestLoader):
             paths_added = add_path(path, self.config)
 
         entries = os.listdir(path)
-        # FIXME
-        # entries.sort(lambda a, b: match_last(a, b, self.config.testMatch))
+        entries.sort(key=lambda a: match_last(a, self.config.testMatch))
         for entry in entries:
             # this hard-coded initial-dot test will be removed:
             # http://code.google.com/p/python-nose/issues/detail?id=82

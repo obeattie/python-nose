@@ -467,7 +467,7 @@ def src(filename):
     return filename
 
 
-def match_last(a, b, regex):
+def match_last(a, regex):
     """Sort compare function that puts items that match a
     regular expression last.
 
@@ -475,15 +475,14 @@ def match_last(a, b, regex):
     >>> c = Config()
     >>> regex = c.testMatch
     >>> entries = ['.', '..', 'a_test', 'src', 'lib', 'test', 'foo.py']
-    >>> entries.sort(lambda a, b: match_last(a, b, regex))
+    >>> entries.sort(key=lambda a: match_last(a, regex))
     >>> entries
     ['.', '..', 'foo.py', 'lib', 'src', 'a_test', 'test']
     """
-    if regex.search(a) and not regex.search(b):
-        return 1
-    elif regex.search(b) and not regex.search(a):
-        return -1
-    return cmp(a, b)
+    if regex.search(a):
+        return (1, a)
+    else:
+        return (0, a)
 
         
 def tolist(val):
