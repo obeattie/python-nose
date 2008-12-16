@@ -28,13 +28,13 @@ an ellipsis.  Note the first line here is chosen not to be "Traceback
 the example should raise an exception!
 
     >>> from nose.plugins.plugintest import remove_stack_traces
-    >>> print remove_stack_traces("""\
+    >>> print(remove_stack_traces("""\
     ... Ceci n'est pas une traceback.
     ... Traceback (most recent call last):
     ...   File "/some/dir/foomodule.py", line 15, in runTest
     ...   File "/some/dir/spam.py", line 293, in who_knows_what
     ... AssertionError: something bad happened
-    ... """)
+    ... """))
     Ceci n'est pas une traceback.
     Traceback (most recent call last):
     ...
@@ -44,7 +44,7 @@ the example should raise an exception!
 Multiple tracebacks in an example are all replaced, as long as they're
 separated by blank lines.
 
-    >>> print remove_stack_traces("""\
+    >>> print(remove_stack_traces("""\
     ... Ceci n'est pas une traceback.
     ... Traceback (most recent call last):
     ...   File spam
@@ -53,7 +53,7 @@ separated by blank lines.
     ... Traceback (most recent call last):
     ...   File eggs
     ... AttributeError: spam
-    ... """)
+    ... """))
     Ceci n'est pas une traceback.
     Traceback (most recent call last):
     ...
@@ -70,7 +70,7 @@ traces, removes test timings from "Ran n test(s)" output, and strips
 trailing blank lines.
 
     >>> from nose.plugins.plugintest import munge_nose_output_for_doctest
-    >>> print munge_nose_output_for_doctest("""\
+    >>> print(munge_nose_output_for_doctest("""\
     ... runTest (foomodule.PassingTest) ... ok
     ... runTest (foomodule.FailingTest) ... FAIL
     ...
@@ -88,7 +88,7 @@ trailing blank lines.
     ... FAILED (failures=1)
     ...
     ...
-    ... """)
+    ... """))
     runTest (foomodule.PassingTest) ... ok
     runTest (foomodule.FailingTest) ... FAIL
     <BLANKLINE>

@@ -1,7 +1,6 @@
     >>> from optparse import OptionParser
     >>> import os
-    >>> from cStringIO import StringIO
-
+    >>> from io import StringIO
     >>> import nose.config
 
 All commandline options to fall back to values configured in
@@ -12,7 +11,7 @@ configuration files.  The configuration lives in a single section
     ...                        "config_defaults")
 
     >>> def error(msg):
-    ...     print "error: %s" % msg
+    ...     print("error: %s" % msg)
 
     >>> def get_parser():
     ...     parser = OptionParser()
@@ -129,18 +128,18 @@ Missing config files don't deserve an error or warning
 (filename)
 
     >>> options, args = parse([], os.path.join(support, "nonexistent.cfg"))
-    >>> print options.__dict__
+    >>> print(options.__dict__)
     {'verbosity': 1}
 
 (filenames)
 
     >>> options, args = parse([], [os.path.join(support, "nonexistent.cfg")])
-    >>> print options.__dict__
+    >>> print(options.__dict__)
     {'verbosity': 1}
 
 
 The same goes for missing config file section ("nosetests")
 
     >>> options, args = parse([], StringIO("[spam]\nfoo=bar\n"))
-    >>> print options.__dict__
+    >>> print(options.__dict__)
     {'verbosity': 1}
