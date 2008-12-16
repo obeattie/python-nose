@@ -273,7 +273,7 @@ def ln(label):
     '---------------------------- hello there -----------------------------'
     """
     label_len = len(label) + 2
-    chunk = (70 - label_len) / 2
+    chunk = (70 - label_len) // 2
     out = '%s %s %s' % ('-' * chunk, label, '-' * chunk)
     pad = 70 - len(out)
     if pad > 0:
