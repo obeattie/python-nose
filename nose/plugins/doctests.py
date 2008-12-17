@@ -51,6 +51,7 @@ import logging
 import os
 import sys
 import unittest
+import doctest
 from inspect import getmodule
 from nose.plugins.base import Plugin
 from nose.suite import ContextList
@@ -64,14 +65,6 @@ import sys
 import builtins
 
 log = logging.getLogger(__name__)
-
-try:
-    import doctest
-    doctest.DocTestCase
-    # system version of doctest is acceptable, but needs a monkeypatch
-except (ImportError, AttributeError):
-    # system version is too old
-    import nose.ext.dtcompat as doctest
 
 
 #
@@ -400,14 +393,3 @@ class DocFileCase(doctest.DocFileCase):
         if self._result_var is not None:
             sys.displayhook = self._old_displayhook
             delattr(__builtin__, self._result_var)
-
-
-def run(*arg, **kw):
-    """DEPRECATED: moved to nose.plugins.plugintest.
-    """
-    import warnings
-    warnings.warn("run() has been moved to nose.plugins.plugintest. Please "
-                  "update your imports.", category=DeprecationWarning,
-                  stacklevel=2)
-    from nose.plugins.plugintest import run
-    run(*arg, **kw)
