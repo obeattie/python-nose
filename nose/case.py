@@ -23,7 +23,7 @@ class Test(unittest.TestCase):
     test property of the nose.case.Test instance.    
     """
     __test__ = False # do not collect
-    def __init__(self, test, config=None, resultProxy=None):
+    def __init__(self, test, config=None):
         # sanity check
         if not hasattr(test, '__call__'):
             raise TypeError("nose.case.Test called with argument %r that "
@@ -35,7 +35,6 @@ class Test(unittest.TestCase):
         self.config = config
         self.tbinfo = None
         self.capturedOutput = None
-        self.resultProxy = resultProxy
         self.plugins = config.plugins
         unittest.TestCase.__init__(self)
         
@@ -123,8 +122,6 @@ class Test(unittest.TestCase):
         test before it is called and do cleanup after it is
         called. They are called unconditionally.
         """
-        if self.resultProxy:
-            result = self.resultProxy(result, self)
         try:
             try:
                 self.beforeTest(result)

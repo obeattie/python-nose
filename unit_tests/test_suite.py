@@ -5,7 +5,6 @@ from nose.suite import LazySuite, ContextSuite, ContextSuiteFactory, \
 import imp
 import sys
 import unittest
-from mock import ResultProxyFactory, ResultProxy
 
 
 class TestLazySuite(unittest.TestCase):
@@ -238,21 +237,6 @@ class TestContextSuite(unittest.TestCase):
         assert not context.was_torndown
         assert res.testsRun == 0, \
                "Expected to run no tests but ran %s" % res.testsRun
-
-    def test_result_proxy_used(self):
-        class TC(unittest.TestCase):
-            def runTest(self):
-                raise Exception("error")
-            
-        ResultProxy.called[:] = []
-        res = unittest.TestResult()
-        config = Config()
-
-        suite = ContextSuite([TC()], resultProxy=ResultProxyFactory())
-        suite(res)
-        calls = [ c[0] for c in ResultProxy.called ]
-        self.assertEqual(calls, ['beforeTest', 'startTest',
-                                 'addError', 'stopTest', 'afterTest'])
 
 
 class TestContextSuiteFactory(unittest.TestCase):

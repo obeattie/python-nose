@@ -39,10 +39,14 @@ class TextTestRunner(unittest.TextTestRunner):
 
     
     def _makeResult(self):
-        return TextTestResult(self.stream,
-                              self.descriptions,
-                              self.verbosity,
-                              self.config)
+        result = TextTestResult(self.stream,
+                                self.descriptions,
+                                self.verbosity,
+                                self.config)
+        plug_result = self.config.plugins.prepareTestResult(result)
+        if plug_result:
+            return plug_result
+        return result
 
     def run(self, test):
         """Overrides to provide plugin hooks and defer all output to
@@ -241,7 +245,8 @@ class TestProgram(unittest.TestProgram):
         if self.config.options.version:
             from nose import __version__
             sys.stdout = sys.__stdout__
-            print("%s version %s" % (os.path.basename(sys.argv[0]), __version__))
+            print("%s version %s" %
+                  (os.path.basename(sys.argv[0]), __version__))
             sys.exit(0)
 
         if self.config.options.showPlugins:

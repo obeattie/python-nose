@@ -12,55 +12,7 @@ class TestSkipPlugin(unittest.TestCase):
         sk = Skip()
         sk.addOptions
         sk.configure
-        sk.prepareTestResult        
-
-    def test_prepare_patches_result(self):
-        stream = unittest._WritelnDecorator(StringIO())
-        res = unittest._TextTestResult(stream, 0, 1)
-        sk = Skip()
-        sk.prepareTestResult(res)
-        res._orig_addError
-        res._orig_printErrors
-        res._orig_wasSuccessful
-        res.skipped
-        self.assertEqual(res.errorClasses,
-                         {SkipTest: (res.skipped, 'SKIP', False)})
-
-        # result w/out print works too
-        res = unittest.TestResult()
-        sk = Skip()
-        sk.prepareTestResult(res)
-        res._orig_addError
-        res.skipped
-        self.assertEqual(res.errorClasses,
-                         {SkipTest: (res.skipped, 'SKIP', False)})
-
-    def test_patched_result_handles_skip(self):
-        res = unittest.TestResult()
-        sk = Skip()
-        sk.prepareTestResult(res)
-
-        class TC(unittest.TestCase):
-            def test(self):
-                raise SkipTest('skip me')
-
-        test = TC('test')
-        test(res)
-        assert not res.errors, "Skip was not caught: %s" % res.errors
-        assert res.skipped
-        assert res.skipped[0][0] is test
-
-    def test_patches_only_when_needed(self):
-        class NoPatch(unittest.TestResult):
-            def __init__(self):
-                self.errorClasses = {}
-                
-        res = NoPatch()
-        sk = Skip()
-        sk.prepareTestResult(res)
-        assert not hasattr(res, '_orig_addError'), \
-               "Skip patched a result class it didn't need to patch"
-        
+        sk.prepareTestResult                
 
     def test_skip_output(self):
         class TC(unittest.TestCase):
@@ -68,7 +20,7 @@ class TestSkipPlugin(unittest.TestCase):
                 raise SkipTest('skip me')
 
         stream = unittest._WritelnDecorator(StringIO())
-        res = unittest._TextTestResult(stream, 0, 1)
+        res = TextTestResult(stream, 0, 1)
         sk = Skip()
         sk.prepareTestResult(res)
 
@@ -90,7 +42,7 @@ class TestSkipPlugin(unittest.TestCase):
                 raise SkipTest('skip me too')
         
         stream = unittest._WritelnDecorator(StringIO())
-        res = unittest._TextTestResult(stream, 0, verbosity=2)
+        res = TextTestResult(stream, 0, verbosity=2)
         sk = Skip()
         sk.prepareTestResult(res)
         test = TC('test')

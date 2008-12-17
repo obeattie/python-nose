@@ -37,6 +37,7 @@ Let's see the plugin in action. First some boilerplate.
 
     >>> import sys
     >>> import unittest
+    >>> import nose.result
     >>> buf = unittest._WritelnDecorator(sys.stdout)
 
 Now define a test case that raises a Todo.
@@ -53,8 +54,8 @@ through the internal process of nose so you can see what happens at
 each step.
 
     >>> plugin = TodoError()
-    >>> result = unittest._TextTestResult(stream=buf,
-    ...                                   descriptions=0, verbosity=2)
+    >>> result = nose.result.TextTestResult(stream=buf,
+    ...                                     descriptions=0, verbosity=2)
     >>> plugin.prepareTestResult(result)
 
 Now run the test. TODO is printed.
@@ -77,7 +78,7 @@ Errors and failures are empty, but todo has our test:
     ----------------------------------------------------------------------
     Traceback (most recent call last):
     ...
-    Todo: I need to test something
+    nose.plugins.errorclass.Todo: I need to test something
     <BLANKLINE>
 
 Since we defined a Todo as a failure, the run was not successful.
@@ -90,6 +91,10 @@ from types import MethodType as instancemethod
 from nose.plugins.base import Plugin
 from nose.result import TextTestResult
 from nose.util import isclass
+import logging
+
+log = logging.getLogger(__name__)
+
 
 class MetaErrorClass(type):
     """Metaclass for ErrorClassPlugins that allows error classes to be
@@ -134,49 +139,14 @@ class ErrorClassPlugin(Plugin, metaclass=MetaErrorClass):
             return True
 
     def prepareTestResult(self, result):
-        if not hasattr(result, 'errorClasses'):
-            self.patchResult(result)
+        log.debug("Prepare test result %s for error classes %s",
+                  result, self.errorClasses)
         for cls, (storage_attr, label, isfail) in self.errorClasses:
             if cls not in result.errorClasses:
                 storage = getattr(result, storage_attr, [])
                 setattr(result, storage_attr, storage)
                 result.errorClasses[cls] = (storage, label, isfail)
 
-    def patchResult(self, result):
-        result._orig_addError, result.addError = \
-            result.addError, add_error_patch(result)
-        result._orig_wasSuccessful, result.wasSuccessful = \
-            result.wasSuccessful, wassuccessful_patch(result)
-        if hasattr(result, 'printErrors'):
-            result._orig_printErrors, result.printErrors = \
-                result.printErrors, print_errors_patch(result)
-        result.errorClasses = {}
-
-
-def add_error_patch(result):
-    """Create a new addError method to patch into a result instance
-    that recognizes the errorClasses attribute and deals with
-    errorclasses correctly.
-    """
-    return instancemethod(
-        TextTestResult.addError.__func__, result, result.__class__)
-
-
-def print_errors_patch(result):
-    """Create a new printErrors method that prints errorClasses items
-    as well.
-    """
-    return instancemethod(
-        TextTestResult.printErrors.__func__, result, result.__class__)
-
-
-def wassuccessful_patch(result):
-    """Create a new wasSuccessful method that checks errorClasses for
-    exceptions that were put into other slots than error or failure
-    but that still count as not success.
-    """
-    return instancemethod(
-        TextTestResult.wasSuccessful.__func__, result, result.__class__)
 
     
 if __name__ == '__main__':

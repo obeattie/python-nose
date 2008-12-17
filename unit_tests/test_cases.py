@@ -4,7 +4,6 @@ import sys
 import nose.case
 import nose.failure
 from nose.config import Config
-from mock import ResultProxyFactory, ResultProxy
 
 class TestNoseCases(unittest.TestCase):
 
@@ -133,26 +132,6 @@ class TestNoseTestWrapper(unittest.TestCase):
         assert not res.errors, res.errors
         assert not res.failures, res.failures
         self.assertEqual(called, ['setUp', 'runTest', 'tearDown'])
-
-    def test_result_proxy_used(self):
-        """A result proxy is used to wrap the result for all tests"""
-        class TC(unittest.TestCase):
-            def runTest(self):
-                raise Exception("error")
-            
-        ResultProxy.called[:] = []
-        res = unittest.TestResult()
-        config = Config()
-        case = nose.case.Test(TC(), config=config,
-                              resultProxy=ResultProxyFactory())
-
-        case(res)
-        assert not res.errors, res.errors
-        assert not res.failures, res.failures
-
-        calls = [ c[0] for c in ResultProxy.called ]
-        self.assertEqual(calls, ['beforeTest', 'startTest', 'addError',
-                                 'stopTest', 'afterTest'])
 
     def test_address(self):
         from nose.util import absfile

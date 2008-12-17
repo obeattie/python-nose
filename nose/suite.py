@@ -15,7 +15,6 @@ import sys
 import unittest
 from nose.case import Test
 from nose.config import Config
-from nose.proxy import ResultProxyFactory
 from nose.util import isclass, resolve_name, try_run
 
 log = logging.getLogger(__name__)
@@ -123,14 +122,13 @@ class ContextSuite(LazySuite):
                        'tearDownPackage')
     
     def __init__(self, tests=(), context=None, factory=None,
-                 config=None, resultProxy=None, can_split=True):
+                 config=None, can_split=True):
         log.debug("Context suite for %s (%s) (%s)", tests, context, id(self))
         self.context = context
         self.factory = factory
         if config is None:
             config = Config()
         self.config = config
-        self.resultProxy = resultProxy
         self.has_run = False
         self.can_split = can_split
         LazySuite.__init__(self, tests)
@@ -156,11 +154,6 @@ class ContextSuite(LazySuite):
     def run(self, result):
         """Run tests in suite inside of suite fixtures.
         """
-        # proxy the result for myself
-        if self.resultProxy:
-            result, orig = self.resultProxy(result, self), result
-        else:
-            result, orig = result, result
         try:
             self.setUp()
         except KeyboardInterrupt:
@@ -173,10 +166,7 @@ class ContextSuite(LazySuite):
                 if result.shouldStop:
                     log.debug("stopping")
                     break
-                # each nose.case.Test will create its own result proxy
-                # so the cases need the original result, to avoid proxy
-                # chains
-                test(orig)
+                test(result)
         finally:
             self.has_run = True
             try:
@@ -328,8 +318,7 @@ class ContextSuite(LazySuite):
                 yield test
             else:
                 yield Test(test,
-                           config=self.config,
-                           resultProxy=self.resultProxy)
+                           config=self.config)
 
     _tests = property(_get_wrapped_tests, LazySuite._set_tests, None,
                       "Access the tests in this suite. Tests are returned "
@@ -344,17 +333,12 @@ class ContextSuiteFactory(object):
     suite may consist of a hierarchy of nested suites.
     """
     suiteClass = ContextSuite
-    def __init__(self, config=None, suiteClass=None, resultProxy=_def):
+    def __init__(self, config=None, suiteClass=None):
         if config is None:
             config = Config()
         self.config = config
         if suiteClass is not None:
             self.suiteClass = suiteClass
-        # Using a singleton to represent default instead of None allows
-        # passing resultProxy=None to turn proxying off.
-        if resultProxy is _def:
-            resultProxy = ResultProxyFactory(config=config)
-        self.resultProxy = resultProxy
         self.suites = {}
         self.context = {}
         self.was_setup = {}
@@ -424,8 +408,7 @@ class ContextSuiteFactory(object):
 
     def makeSuite(self, tests, context, **kw):
         suite = self.suiteClass(
-            tests, context=context, config=self.config, factory=self,
-            resultProxy=self.resultProxy, **kw)
+            tests, context=context, config=self.config, factory=self, **kw)
         if context is not None:
             self.suites.setdefault(context, []).append(suite)
             self.context.setdefault(suite, []).append(context)
@@ -501,7 +484,7 @@ class ContextSuiteFactory(object):
                 wrapped.append(self.makeSuite(test, context=test.context))
             else:
                 wrapped.append(
-                    Test(test, config=self.config, resultProxy=self.resultProxy)
+                    Test(test, config=self.config)
                     )
         return wrapped
 
@@ -539,18 +522,3 @@ class FinalizingSuiteWrapper(unittest.TestSuite):
             self.finalize(*arg, **kw)
 
 
-# backwards compat -- sort of
-class TestDir:
-    def __init__(*arg, **kw):
-        raise NotImplementedError(
-            "TestDir is not usable with nose 0.10. The class is present "
-            "in nose.suite for backwards compatibility purposes but it "
-            "may not be used.")
-
-
-class TestModule:
-    def __init__(*arg, **kw):
-        raise NotImplementedError(
-            "TestModule is not usable with nose 0.10. The class is present "
-            "in nose.suite for backwards compatibility purposes but it "
-            "may not be used.")

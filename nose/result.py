@@ -38,19 +38,36 @@ class TextTestResult(_TextTestResult):
             config = Config()       
         self.config = config
         _TextTestResult.__init__(self, stream, descriptions, verbosity)
+
+    def afterTest(self, test):
+        self.config.plugins.afterTest(test)
+
+    def beforeTest(self, test):
+        self.config.plugins.beforeTest(test)
                 
     def addError(self, test, err):
         """Overrides normal addError to add support for
-        errorClasses. If the exception is a registered class, the
-        error will be added to the list for that class, not errors.
+        errorClasses and plugin hooks.
+        
+        If the exception is a registered class, the error will be added
+        to the list for that class, not errors.
         """
-        stream = getattr(self, 'stream', None)
+        stream = self.stream
+        plugins = self.config.plugins
+        plugin_handled = plugins.handleError(test, err)
+        if plugin_handled:
+            return
+        formatted = plugins.formatError(test, err)
+        if formatted is not None:
+            err = formatted
+        plugins.addError(test, err)
         ec, ev, tb = err
         try:
             exc_info = self._exc_info_to_string(err, test)
         except TypeError:
             # 2.3 compat
             exc_info = self._exc_info_to_string(err)
+        ec_handled = False
         for cls, (storage, label, isfail) in list(self.errorClasses.items()):
             if isclass(ec) and issubclass(ec, cls):
                 storage.append((test, exc_info))
@@ -64,13 +81,42 @@ class TextTestResult(_TextTestResult):
                         stream.writeln(": ".join(message))
                     elif self.dots:
                         stream.write(label[:1])
-                return
-        self.errors.append((test, exc_info))
-        if stream is not None:
-            if self.showAll:
-                self.stream.writeln('ERROR')
-            elif self.dots:
-                stream.write('E')
+                ec_handled = True
+                break
+        if not ec_handled:
+            self.errors.append((test, exc_info))
+            if stream is not None:
+                if self.showAll:
+                    self.stream.writeln('ERROR')
+                elif self.dots:
+                    stream.write('E')
+        if not self.wasSuccessful() and self.config.stopOnError:
+            self.shouldStop = True
+
+    def addFailure(self, test, err):
+        plugins = self.config.plugins
+        plugin_handled = plugins.handleFailure(test, err)
+        if plugin_handled:
+            return
+        formatted = plugins.formatFailure(test, err)
+        if formatted is not None:
+            err = formatted
+        plugins.addFailure(test, err)
+        super().addFailure(test, err)
+        if self.config.stopOnError:
+            self.shouldStop = True
+    
+    def addSuccess(self, test):
+        self.config.plugins.addSuccess(test)
+        super().addSuccess(test)
+
+    def startTest(self, test):
+        self.config.plugins.startTest(test)
+        super().startTest(test)
+    
+    def stopTest(self, test):
+        self.config.plugins.stopTest(test)
+        super().stopTest(test)
 
     def printErrors(self):
         """Overrides to print all errorClasses errors as well.
@@ -133,25 +179,13 @@ class TextTestResult(_TextTestResult):
         """
         if self.errors or self.failures:
             return False
-        for cls in list(self.errorClasses.keys()):
+        for cls in self.errorClasses.keys():
             storage, label, isfail = self.errorClasses[cls]
             if not isfail:
                 continue
             if storage:
                 return False
         return True
-
-    def _addError(self, test, err):
-        try:
-            exc_info = self._exc_info_to_string(err, test)
-        except TypeError:
-            # 2.3: does not take test arg
-            exc_info = self._exc_info_to_string(err)
-        self.errors.append((test, exc_info))
-        if self.showAll:
-            self.stream.write('ERROR')
-        elif self.dots:
-            self.stream.write('E')
 
     def _exc_info_to_string(self, err, test=None):
         # 2.3/2.4 -- 2.4 passes test, 2.3 does not
@@ -161,12 +195,5 @@ class TextTestResult(_TextTestResult):
             # 2.3: does not take test arg
             return _TextTestResult._exc_info_to_string(self, err)
 
-
-def ln(*arg, **kw):
-    from warnings import warn
-    warn("ln() has moved to nose.util from nose.result and will be removed "
-         "from nose.result in a future release. Please update your imports ",
-         DeprecationWarning)
-    return _ln(*arg, **kw)
     
 

@@ -5,7 +5,6 @@ handling intended to ignore the case where the method is not present.
     >>> import unittest
 
     >>> import nose.case
-    >>> import nose.proxy
     >>> import nose.result
     >>> import nose.util
     >>> import nose.plugins.doctests
@@ -29,11 +28,10 @@ handling intended to ignore the case where the method is not present.
 
     >>> test = nose.case.Test(TestCase())
     >>> result = Result(sys.stdout, True, 1)
-    >>> proxy = nose.proxy.ResultProxy(result, test)
-    >>> proxy.beforeTest(test)
+    >>> result.beforeTest(test)
     Traceback (most recent call last):
     AttributeError: bug in Result
-    >>> proxy.afterTest(test)
+    >>> result.afterTest(test)
     Traceback (most recent call last):
     AttributeError: bug in Result
 
