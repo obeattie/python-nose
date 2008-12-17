@@ -146,10 +146,10 @@ class TestSelector(unittest.TestCase):
             
         s = Selector(Config())
         
-        assert s.wantMethod(Baz.test_me)
-        assert s.wantMethod(Baz.test_too)
-        assert not s.wantMethod(Baz.other)
-        assert not s.wantMethod(Baz.test_not_test), \
+        assert s.wantMethod(Baz, Baz.test_me)
+        assert s.wantMethod(Baz, Baz.test_too)
+        assert not s.wantMethod(Baz, Baz.other)
+        assert not s.wantMethod(Baz, Baz.test_not_test), \
                "Failed to respect __test__ = False"
         
     def test_want_module(self):

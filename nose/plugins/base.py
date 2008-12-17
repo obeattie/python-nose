@@ -155,7 +155,7 @@ class IPluginInterface(object):
       non-module files selected by `wantFile`.
        
     * The builtin attrib plugin implements `wantFunction` and
-      `wantMethod` so that it can reject tests that don't match the
+      `wantethod` so that it can reject tests that don't match the
       specified attributes.
 
     Handling errors
@@ -854,13 +854,15 @@ class IPluginInterface(object):
         """
         pass
     
-    def wantMethod(self, method):
+    def wantMethod(self, cls, method):
         """Return true to collect this method as a test, false to
         prevent it from being collected, and None if you don't care.
 
         :Parameters:
-          method : unbound method
-            The method object being examined by the selector
+          cls : class
+            Class in which the method appears
+          method : function
+            The function being examined by the selector
         """    
         pass
     

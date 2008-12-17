@@ -9,6 +9,7 @@ reporting.
 """
 
 import logging
+from io import StringIO
 from unittest import _TextTestResult
 from nose.config import Config
 from nose.util import isclass, ln as _ln # backwards compat
@@ -29,8 +30,10 @@ class TextTestResult(_TextTestResult):
     support for a configurable set of errorClasses (eg, Skip,
     Deprecated, TODO) that extend the errors/failures/success triad.
     """    
-    def __init__(self, stream, descriptions, verbosity, config=None,
-                 errorClasses=None):        
+    def __init__(self, stream=None, descriptions=0, verbosity=1, config=None,
+                 errorClasses=None):
+        if stream is None:
+            stream = StringIO()
         if errorClasses is None:
             errorClasses = {}
         self.errorClasses = errorClasses

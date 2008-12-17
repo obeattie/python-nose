@@ -198,9 +198,8 @@ class AttributeSelector(Plugin):
         cls_attr = cls.__dict__
         if self.validateAttrib(cls_attr) is not False:
             return None
-        # Methods in __dict__.values() are functions, oddly enough.
-        methods = list(filter(isfunction, list(cls_attr.values())))
-        wanted = [m for m in list(map(self.wantFunction, methods)) if m is not False]
+        methods = filter(isfunction, cls_attr.values())
+        wanted = [m for m in map(self.wantFunction, methods) if m is not False]
         if wanted:
             return None
         return False
@@ -208,6 +207,6 @@ class AttributeSelector(Plugin):
     def wantFunction(self, function):
         return self.validateAttrib(function.__dict__)
         
-    def wantMethod(self, method):
-        attribs = AttributeGetter(method.__self__.__class__, method)
+    def wantMethod(self, cls, method):
+        attribs = AttributeGetter(cls, method)
         return self.validateAttrib(attribs)

@@ -4,13 +4,14 @@ from nose.config import Config
 from nose.plugins import debug
 from nose.plugins.manager import PluginManager
 from nose.plugins.skip import Skip, SkipTest
-from nose.proxy import ResultProxyFactory
+from nose.result import TextTestResult
 
 
 class StubPdb:
     called = False
     def post_mortem(self, tb):
         self.called = True
+
 
 class TestSkipPdbInteraction(unittest.TestCase):
     """Tests interaction between skip plugin and pdb plugin -- pdb should
@@ -34,10 +35,10 @@ class TestSkipPdbInteraction(unittest.TestCase):
         p = debug.Pdb()
         p.enabled = True
         p.enabled_for_errors = True
-        res = unittest.TestResult()
+        res = TextTestResult()
+        skip.prepareTestResult(res)
         conf = Config(plugins=PluginManager(plugins=[skip, p]))        
-        rpf = ResultProxyFactory(conf)
-        test = case.Test(TC('test'), resultProxy=rpf)
+        test = case.Test(TC('test'))
         test(res)
 
         assert not res.errors, "Skip was recorded as error %s" % res.errors

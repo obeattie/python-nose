@@ -9,6 +9,7 @@ from nose.plugins.manager import PluginManager
 from nose.plugins.skip import Skip
 from nose import loader
 from nose import suite
+from nose.result import TextTestResult
 
 support = os.path.abspath(os.path.join(os.path.dirname(__file__), 'support'))
 
@@ -28,7 +29,7 @@ class TestNoseTestLoader(unittest.TestCase):
         suite.ContextSuiteFactory.suiteClass = suite.ContextSuite
 
     def test_load_from_name_file(self):
-        res = unittest.TestResult()
+        res = TextTestResult()
         wd = os.path.join(support, 'package1')
         l = loader.TestLoader(workingDir=wd)
 
@@ -38,7 +39,7 @@ class TestNoseTestLoader(unittest.TestCase):
         assert not res.failures, res.failures
 
     def test_load_from_name_dot(self):
-        res = unittest.TestResult()
+        res = TextTestResult()
         wd = os.path.join(support, 'package1')
         l = loader.TestLoader(workingDir=wd)
         dir_suite = l.loadTestsFromName('.')
@@ -47,7 +48,7 @@ class TestNoseTestLoader(unittest.TestCase):
         assert not res.failures, res.failures
 
     def test_load_from_name_file_callable(self):
-        res = unittest.TestResult()
+        res = TextTestResult()
         wd = os.path.join(support, 'package1')
         l = loader.TestLoader(workingDir=wd)
         suite = l.loadTestsFromName(
@@ -58,7 +59,7 @@ class TestNoseTestLoader(unittest.TestCase):
         self.assertEqual(res.testsRun, 1)
 
     def test_fixture_context(self):
-        res = unittest.TestResult()
+        res = TextTestResult()
         wd = os.path.join(support, 'package2')
         l = loader.TestLoader(workingDir=wd)
         dir_suite = l.loadTestsFromName('.')
@@ -96,7 +97,7 @@ class TestNoseTestLoader(unittest.TestCase):
             self.assertEqual(item, expect.pop(0))
 
     def test_fixture_context_name_is_module(self):
-        res = unittest.TestResult()
+        res = TextTestResult()
         wd = os.path.join(support, 'package2')
         l = loader.TestLoader(workingDir=wd)
         suite = l.loadTestsFromName('test_pak.test_mod')
@@ -117,7 +118,7 @@ class TestNoseTestLoader(unittest.TestCase):
             self.assertEqual(item, expect.pop(0))
 
     def test_fixture_context_name_is_test_function(self):
-        res = unittest.TestResult()
+        res = TextTestResult()
         wd = os.path.join(support, 'package2')
         l = loader.TestLoader(workingDir=wd)
         suite = l.loadTestsFromName('test_pak.test_mod:test_add')
@@ -137,7 +138,7 @@ class TestNoseTestLoader(unittest.TestCase):
             self.assertEqual(item, expect.pop(0))
 
     def test_fixture_context_name_is_test_class(self):
-        res = unittest.TestResult()
+        res = TextTestResult()
         wd = os.path.join(support, 'package2')
         l = loader.TestLoader(workingDir=wd)
         suite = l.loadTestsFromName(
@@ -165,7 +166,7 @@ class TestNoseTestLoader(unittest.TestCase):
         self.assertEqual(m.state, expect, diff(expect, m.state))
 
     def test_fixture_context_name_is_test_class_test(self):
-        res = unittest.TestResult()
+        res = TextTestResult()
         wd = os.path.join(support, 'package2')
         l = loader.TestLoader(workingDir=wd)
         suite = l.loadTestsFromName(
@@ -190,7 +191,7 @@ class TestNoseTestLoader(unittest.TestCase):
         self.assertEqual(m.state, expect, diff(expect, m.state))
 
     def test_fixture_context_multiple_names(self):
-        res = unittest.TestResult()
+        res = TextTestResult()
         wd = os.path.join(support, 'package2')
         l = loader.TestLoader(workingDir=wd)
         suite = l.loadTestsFromNames(
@@ -293,7 +294,7 @@ class TestNoseTestLoader(unittest.TestCase):
         l = loader.TestLoader(workingDir=ctx)
         suite = l.loadTestsFromName('mod_setup_fails.py')
 
-        res = unittest.TestResult()
+        res = TextTestResult()
         suite(res)
 
         assert res.errors
@@ -307,7 +308,8 @@ class TestNoseTestLoader(unittest.TestCase):
         l = loader.TestLoader(workingDir=ctx, config=config)
         suite = l.loadTestsFromName('mod_setup_skip.py')
 
-        res = unittest.TestResult()
+        res = TextTestResult()
+        config.plugins.prepareTestResult(res)
         suite(res)
 
         assert not suite.was_setup, "Suite setup did not fail"
@@ -323,7 +325,8 @@ class TestNoseTestLoader(unittest.TestCase):
         l = loader.TestLoader(workingDir=ctx, config=config)
         suite = l.loadTestsFromName('mod_import_skip.py')
 
-        res = unittest.TestResult()
+        res = TextTestResult()
+        config.plugins.prepareTestResult(res)
         suite(res)
 
         assert not res.errors, res.errors
@@ -361,7 +364,7 @@ class TestNoseTestLoader(unittest.TestCase):
         res.printErrors()
         assert res.errors, "Expected errors but got none"
         assert not res.failures, res.failures
-        err = res.errors[0][0].test.exc_class
+        err = res.errors[0][0].exc_class
         assert err is ImportError, \
             "Expected import error, got %s" % err
 

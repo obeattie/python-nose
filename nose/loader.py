@@ -103,7 +103,7 @@ class TestLoader(unittest.TestLoader):
             item = getattr(cls, attr, None)
             if not hasattr(item, '__call__'):
                 return False
-            return sel.wantMethod(item)
+            return sel.wantMethod(cls, item)
         cases = [case for case in dir(testCaseClass)
                  if wanted(case)]
         for base in testCaseClass.__bases__:
@@ -459,7 +459,7 @@ class TestLoader(unittest.TestLoader):
             item = getattr(cls, attr, None)
             if not hasattr(item, '__call__'):
                 return False
-            return sel.wantMethod(item)
+            return sel.wantMethod(cls, item)
         cases = [self.makeTest(getattr(cls, case), cls)
                  for case in filter(wanted, dir(cls))]
         for test in self.config.plugins.loadTestsFromTestClass(cls):

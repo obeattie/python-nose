@@ -34,7 +34,7 @@ tracebacks are printed.
     ----------------------------------------------------------------------
     Traceback (most recent call last):
     ...
-    Todo: fix me
+    errorclass_failure_plugin.Todo: fix me
     <BLANKLINE>
     ----------------------------------------------------------------------
     Ran 2 tests in ...s
@@ -53,7 +53,7 @@ Also, --stop stops the test run.
     ----------------------------------------------------------------------
     Traceback (most recent call last):
     ...
-    Todo: fix me
+    errorclass_failure_plugin.Todo: fix me
     <BLANKLINE>
     ----------------------------------------------------------------------
     Ran 1 test in ...s
@@ -99,7 +99,7 @@ that exception detail strings may have more than one line.
     ----------------------------------------------------------------------
     Traceback (most recent call last):
     ...
-    Todo: fix me
+    errorclass_failure_plugin.Todo: fix me
     <BLANKLINE>
     ----------------------------------------------------------------------
     Ran 6 tests in ...s
@@ -118,7 +118,7 @@ error is not ignored (otherwise, there's no traceback)
     ----------------------------------------------------------------------
     Traceback (most recent call last):
     ...
-    Todo: fix me
+    errorclass_failure_plugin.Todo: fix me
     <BLANKLINE>
     ----------------------------------------------------------------------
     Ran 6 tests in ...s

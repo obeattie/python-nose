@@ -152,7 +152,7 @@ class Selector(object):
         log.debug("wantFunction %s? %s", function, wanted)
         return wanted
 
-    def wantMethod(self, method):
+    def wantMethod(self, cls, method):
         """Is the method a test method?
         """
         try:
@@ -168,7 +168,7 @@ class Selector(object):
             wanted = declared
         else:
             wanted = self.matches(method_name)
-        plug_wants = self.plugins.wantMethod(method)
+        plug_wants = self.plugins.wantMethod(cls, method)
         if plug_wants is not None:
             wanted = plug_wants
         log.debug("wantMethod %s? %s", method, wanted)

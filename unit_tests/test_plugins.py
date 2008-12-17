@@ -275,7 +275,7 @@ class TestAttribPlugin(unittest.TestCase):
         
         plug = AttributeSelector()
         plug.attribs = [[('foo', True)]]
-        assert plug.wantMethod(TestP.h) is not False
+        assert plug.wantMethod(TestP, TestP.h) is not False
         assert plug.wantFunction(i) is False
         
     def test_eval_attr(self):
