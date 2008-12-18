@@ -189,14 +189,5 @@ class TextTestResult(_TextTestResult):
             if storage:
                 return False
         return True
-
-    def _exc_info_to_string(self, err, test=None):
-        # 2.3/2.4 -- 2.4 passes test, 2.3 does not
-        try:
-            return _TextTestResult._exc_info_to_string(self, err, test)
-        except TypeError:
-            # 2.3: does not take test arg
-            return _TextTestResult._exc_info_to_string(self, err)
-
     
 

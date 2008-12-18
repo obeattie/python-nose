@@ -531,7 +531,7 @@ class odict(dict):
             self._keys.append(key)
 
     def __str__(self):
-        return "{%s}" % ', '.join(["%r: %r" % (k, v) for k, v in list(self.items())])
+        return "{%s}" % ', '.join("%r: %r" % (k, v) for k, v in self.items())
 
     def clear(self):
         super(odict, self).clear()
@@ -543,7 +543,7 @@ class odict(dict):
         return d
 
     def items(self):
-        return list(zip(self._keys, list(self.values())))
+        return zip(self._keys, self.values())
 
     def keys(self):
         return self._keys[:]
@@ -618,6 +618,28 @@ def transplant_class(cls, module):
     C.__module__ = module
     C.__name__ = cls.__name__
     return C
+
+def add_exc_msg(e, msg):
+    """
+    Add the given msg to the str output of an exception.
+    """
+    class P(e.__class__):
+        def __init__(self, e):
+            self.__e = e
+            try:
+                self.__cause__ = e.__cause__
+                self.__context__ = e.__context__
+            except AttributeError:
+                pass
+            self.args = e.args
+        def __str__(self):
+            return str(self.__e) + "\n" + msg
+        def __getattr__(self, attr):
+            return getattr(self.__e, attr)
+    P.__name__ = e.__class__.__name__
+    P.__module__ = e.__class__.__module__
+    return P(e)
+
 
 
 if __name__ == '__main__':

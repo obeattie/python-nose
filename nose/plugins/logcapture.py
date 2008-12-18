@@ -23,7 +23,7 @@ import logging
 from logging.handlers import BufferingHandler
 
 from nose.plugins.base import Plugin
-from nose.util import ln
+from nose.util import ln, add_exc_msg
 
 try:
     from io import StringIO
@@ -163,6 +163,6 @@ class LogCapture(Plugin):
         return [format(r) for r in self.handler.buffer]
 
     def addCaptureToErr(self, ev, records):
-        return '\n'.join([str(ev), ln('>> begin captured logging <<')] + \
-                          records + \
-                          [ln('>> end captured logging <<')])
+        return add_exc_msg(ev, '\n'.join(
+            [ln('>> begin captured logging <<')] + records + 
+            [ln('>> end captured logging <<')]))

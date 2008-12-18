@@ -8,7 +8,7 @@ import logging
 import os
 import sys
 from nose.plugins.base import Plugin
-from nose.util import ln
+from nose.util import ln, add_exc_msg
 try:
     from io import StringIO
 except ImportError:
@@ -70,8 +70,9 @@ class Capture(Plugin):
         return self.formatError(test, err)
 
     def addCaptureToErr(self, ev, output):
-        return '\n'.join([str(ev) , ln('>> begin captured stdout <<'),
-                          output, ln('>> end captured stdout <<')])
+        return add_exc_msg(ev, '\n'.join([
+            ln('>> begin captured stdout <<'),
+            output, ln('>> end captured stdout <<')]))
 
     def start(self):
         self.stdout.append(sys.stdout)
@@ -92,3 +93,5 @@ class Capture(Plugin):
 
     buffer = property(_get_buffer, None, None,
                       """Captured stdout output.""")
+
+
