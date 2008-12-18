@@ -72,7 +72,7 @@ class TestCapturePlugin(unittest.TestCase):
         
         self.assertEqual(ec, fec)
         self.assertEqual(tb, ftb)
-        assert 'Oh my!' in fev, "Output not found in error message"
+        assert 'Oh my!' in str(fev), "Output not found in error message"
         assert 'Oh my!' in d.capturedOutput, "Output not attached to test"
 
 if __name__ == '__main__':

@@ -5,6 +5,7 @@ to create test cases from test functions and methods in test classes.
 import logging
 import sys
 import unittest
+import weakref
 from nose.config import Config
 from nose.failure import Failure # for backwards compatibility
 from nose.util import resolve_name, test_address, try_run
@@ -30,6 +31,7 @@ class Test(unittest.TestCase):
                             "is not callable. A callable is required."
                             % test)
         self.test = test
+        test._nose_case_ = weakref.ref(self)
         if config is None:
             config = Config()
         self.config = config
@@ -58,7 +60,7 @@ class Test(unittest.TestCase):
         except AttributeError:
             pass
         else:
-            afterTest(self.test)
+            afterTest(self)
 
     def beforeTest(self, result):
         """Called after test is complete (after result.stopTest)
@@ -68,7 +70,7 @@ class Test(unittest.TestCase):
         except AttributeError:
             pass
         else:
-            beforeTest(self.test)
+            beforeTest(self)
 
     def exc_info(self):
         """Extract exception info.
@@ -86,11 +88,7 @@ class Test(unittest.TestCase):
         fed back as input to loadTestByName and (assuming the same
         plugin configuration) result in the loading of this test.
         """
-        if hasattr(self.test, 'address'):
-            return self.test.address()
-        else:
-            # not a nose case
-            return test_address(self.test)
+        return test_address(self.test)
 
     def _context(self):
         try:

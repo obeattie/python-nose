@@ -1,9 +1,3 @@
-- formatError converts exceptions to strings. This is not good, as it breaks
-  traceback formatting, which expects exceptions to be exceptions.
-
-  How else can plugins attach extra detail to exception output?
- 
-  Maybe move the format call to exc_info_to_string?
-
-  Maybe turn of chaining in format_exception -- but does that hide potentially
-  useful information?
+- without some kind of result proxy, plugin calls from within a result will NOT
+  get the test wrapper (nose.case.Test) but instead the wrapped test. Among 
+  other things, this breaks the test_id plugin.

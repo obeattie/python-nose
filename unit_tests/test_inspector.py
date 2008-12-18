@@ -4,23 +4,22 @@ import textwrap
 import tokenize
 import traceback
 import unittest
+from io import BytesIO
 
-try:
-    from io import StringIO
-except ImportError:
-    from io import StringIO
 
 from nose.inspector import inspect_traceback, Expander, tbsource
+
 
 class TestExpander(unittest.TestCase):
 
     def test_simple_inspect_frame(self):
-        src = StringIO('a > 2')
+        src = BytesIO(b'a > 2')
         lc = { 'a': 2}
         gb = {}
         exp = Expander(lc, gb)
-        
-        tokenize.tokenize(src.readline, exp)
+
+        for line in tokenize.tokenize(src.readline):
+            exp(*line)
         # print "'%s'" % exp.expanded_source
         self.assertEqual(exp.expanded_source.strip(), '2 > 2')
 
@@ -58,9 +57,10 @@ class TestExpander(unittest.TestCase):
         except AssertionError:
             et, ev, tb = sys.exc_info()
             lines, lineno = tbsource(tb)
+            print(lines, lineno)
             out = textwrap.dedent(''.join(lines))
             self.assertEqual(out,
-                             '    print n\n'
+                             '    print(n)\n'
                              '    assert n % 2 == 0\n'
                              'try:\n'
                              '    check_even(1)\n'
@@ -113,7 +113,7 @@ class TestExpander(unittest.TestCase):
             print("'%s'" % out.strip())
             self.assertEqual(out.strip(),
                              "assert {'setup': 1}['setup']\n" 
-                             "    print 1, 3\n"
+                             "    print(1, 3)\n"
                              ">>  assert 1 % 2 == 0 or 3 % 2 == 0")
             
     def test_bug_95(self):

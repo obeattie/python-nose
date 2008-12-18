@@ -9,6 +9,8 @@ in the context output to provide more debugging information.
 import os
 from nose.plugins import Plugin
 from nose.inspector import inspect_traceback
+from nose.util import add_exc_msg
+
 
 class FailureDetail(Plugin):
     """
@@ -39,4 +41,4 @@ class FailureDetail(Plugin):
         ec, ev, tb = err
         tbinfo = inspect_traceback(tb)
         test.tbinfo = tbinfo
-        return (ec, '\n'.join([str(ev), tbinfo]), tb)
+        return (ec, add_exc_msg(ev, tbinfo), tb)

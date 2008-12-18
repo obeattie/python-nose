@@ -13,6 +13,7 @@ from io import StringIO
 from unittest import _TextTestResult
 from nose.config import Config
 from nose.util import isclass, ln as _ln # backwards compat
+from nose import case
 
 log = logging.getLogger('nose.result')
 
@@ -43,10 +44,10 @@ class TextTestResult(_TextTestResult):
         _TextTestResult.__init__(self, stream, descriptions, verbosity)
 
     def afterTest(self, test):
-        self.config.plugins.afterTest(test)
+        self.config.plugins.afterTest(self._case(test))
 
     def beforeTest(self, test):
-        self.config.plugins.beforeTest(test)
+        self.config.plugins.beforeTest(self._case(test))
                 
     def addError(self, test, err):
         """Overrides normal addError to add support for
@@ -57,13 +58,14 @@ class TextTestResult(_TextTestResult):
         """
         stream = self.stream
         plugins = self.config.plugins
-        plugin_handled = plugins.handleError(test, err)
+        _case = self._case(test)
+        plugin_handled = plugins.handleError(_case, err)
         if plugin_handled:
             return
-        formatted = plugins.formatError(test, err)
+        formatted = plugins.formatError(_case, err)
         if formatted is not None:
             err = formatted
-        plugins.addError(test, err)
+        plugins.addError(_case, err)
         ec, ev, tb = err
         try:
             exc_info = self._exc_info_to_string(err, test)
@@ -98,27 +100,28 @@ class TextTestResult(_TextTestResult):
 
     def addFailure(self, test, err):
         plugins = self.config.plugins
-        plugin_handled = plugins.handleFailure(test, err)
+        _case = self._case(test)
+        plugin_handled = plugins.handleFailure(_case, err)
         if plugin_handled:
             return
-        formatted = plugins.formatFailure(test, err)
+        formatted = plugins.formatFailure(_case, err)
         if formatted is not None:
             err = formatted
-        plugins.addFailure(test, err)
+        plugins.addFailure(_case, err)
         super().addFailure(test, err)
         if self.config.stopOnError:
             self.shouldStop = True
     
     def addSuccess(self, test):
-        self.config.plugins.addSuccess(test)
+        self.config.plugins.addSuccess(self._case(test))
         super().addSuccess(test)
 
     def startTest(self, test):
-        self.config.plugins.startTest(test)
+        self.config.plugins.startTest(self._case(test))
         super().startTest(test)
     
     def stopTest(self, test):
-        self.config.plugins.stopTest(test)
+        self.config.plugins.stopTest(self._case(test))
         super().stopTest(test)
 
     def printErrors(self):
@@ -190,4 +193,17 @@ class TextTestResult(_TextTestResult):
                 return False
         return True
     
-
+    def _case(self, test):
+        """
+        Return a nose.case.Test wrapper for the given test case.
+        """
+        if isinstance(test, case.Test):
+            return test
+        _case = None
+        try:
+            _case = test._nose_case_()
+        except AttributeError:
+            pass
+        if _case is None:
+            _case = case.Test(test)
+        return _case

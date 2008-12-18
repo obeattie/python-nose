@@ -37,7 +37,7 @@ __test__ = False
 import logging
 import os
 from nose.plugins import Plugin
-from nose.util import src
+from nose.util import src, test_address
 
 try:
     from pickle import dump, load
@@ -81,9 +81,9 @@ class TestId(Plugin):
 
     def finalize(self, result):
         if self.shouldSave:
-            fh = open(self.idfile, 'wb')
+            fh = open(self.idfile, 'w+b')
             # save as {id: test address}
-            ids = dict(list(zip(list(self.tests.values()), list(self.tests.keys()))))            
+            ids = dict(zip(self.tests.values(), self.tests.keys()))
             dump(ids, fh)
             fh.close()
             log.debug('Saved test ids: %s to %s', ids, self.idfile)
@@ -94,7 +94,7 @@ class TestId(Plugin):
         """
         log.debug('ltfn %s %s', names, module)
         try:
-            fh = open(self.idfile, 'rb')
+            fh = open(self.idfile, 'r+b')
             self.ids = load(fh)
             log.debug('Loaded test ids %s from %s', self.ids, self.idfile)
             fh.close()
@@ -108,7 +108,7 @@ class TestId(Plugin):
         if not self.shouldSave:
             # got some ids in names, so make sure that the ids line
             # up in output with what I said they were last time
-            self.tests = dict(list(zip(list(self.ids.values()), list(self.ids.keys()))))
+            self.tests = dict(zip(self.ids.values(), self.ids.keys()))
         return result
 
     def makeName(self, addr):
@@ -126,7 +126,7 @@ class TestId(Plugin):
         self.stream = stream
 
     def startTest(self, test):
-        adr = test.address()
+        adr = test_address(test)
         log.debug('start test %s (%s)', adr, adr in self.tests)
         if adr in self.tests:
             if self.shouldSave or adr in self._seen:

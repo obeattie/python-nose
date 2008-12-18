@@ -7,11 +7,7 @@ import re
 import sys
 import textwrap
 import tokenize
-
-try:
-    from io import StringIO
-except ImportError:
-    from io import StringIO
+from io import BytesIO 
 
 log = logging.getLogger(__name__)
 
@@ -31,12 +27,13 @@ def inspect_traceback(tb):
         
     # figure out the set of lines to grab.
     inspect_lines, mark_line = find_inspectable_lines(lines, exc_line)
-    src = StringIO(textwrap.dedent(''.join(inspect_lines)))
+    src = BytesIO(textwrap.dedent(''.join(inspect_lines)).encode())
     exp = Expander(frame.f_locals, frame.f_globals)
 
     while inspect_lines:
         try:
-            tokenize.tokenize(src.readline, exp)
+            for line in tokenize.tokenize(src.readline):
+                exp(*line)
         except tokenize.TokenError as e:
             # this can happen if our inspectable region happens to butt up
             # against the end of a construct like a docstring with the closing
@@ -44,7 +41,7 @@ def inspect_traceback(tb):
             log.debug("Tokenizer error: %s", e)
             inspect_lines.pop(0)
             mark_line -= 1
-            src = StringIO(textwrap.dedent(''.join(inspect_lines)))
+            src = BytesIO(textwrap.dedent(''.join(inspect_lines)).encode())
             exp = Expander(frame.f_locals, frame.f_globals)
             continue
         break
@@ -166,12 +163,13 @@ class Expander:
         #   if the current token is a dot,
         #      get ready to getattr(lastthing, this thing) on the
         #      next call.
-        
-        if self.lpos is not None and start[1] >= self.lpos:
-            self.expanded_source += ' ' * (start[1]-self.lpos)
-        elif start[1] < self.lpos:
-            # newline, indent correctly
-            self.expanded_source += ' ' * start[1]
+
+        if self.lpos is not None:
+            if start[1] >= self.lpos:
+                self.expanded_source += ' ' * (start[1]-self.lpos)
+            elif start[1] < self.lpos:
+                # newline, indent correctly
+                self.expanded_source += ' ' * start[1]
         self.lpos = end[1]
       
         if ttype == tokenize.INDENT:
@@ -197,6 +195,8 @@ class Expander:
             # FIXME... not sure how to handle things like funcs, classes
             # FIXME this is broken for some unicode strings
             self.expanded_source += val
+        elif ttype == tokenize.ENCODING:
+            pass
         else:
             self.expanded_source += tok
         # if this is the end of the line and the line ends with
