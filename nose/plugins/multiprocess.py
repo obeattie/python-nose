@@ -137,6 +137,10 @@ class TestLet:
         self._short_description = case.shortDescription()
         self._str = str(case)
 
+    def __call__(self, result):
+        # Here so that nose.case.Test doesn't object
+        pass
+    
     def id(self):
         return self._id
 

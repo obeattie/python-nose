@@ -178,6 +178,13 @@ class TextTestResult(_TextTestResult):
         else:
             writeln()
 
+    def getDescription(self, test):
+        _case = self._case(test)
+        if self.descriptions:
+            return _case.shortDescription() or str(_case)
+        else:
+            return str(_case)
+
     def wasSuccessful(self):
         """Overrides to check that there are no errors in errorClasses
         lists that are marked as errors that should cause a run to

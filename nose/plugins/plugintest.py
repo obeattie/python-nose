@@ -10,10 +10,7 @@ import re
 import sys
 from warnings import warn
 
-try:
-    from io import StringIO
-except ImportError:
-    from io import StringIO
+from io import StringIO
     
 __all__ = ['PluginTester', 'run']
 
@@ -135,7 +132,6 @@ class AccessDecorator(object):
 def blankline_separated_blocks(text):
     block = []
     for line in text.splitlines(True):
-        line = str(line)
         block.append(line)
         if not line.strip():
             yield "".join(block)
@@ -182,6 +178,10 @@ def remove_timings(out):
 
 def munge_nose_output_for_doctest(out):
     """Modify nose output to make it easy to use in doctests."""
+    try:
+        out = out.decode()
+    except AttributeError:
+        pass
     out = remove_stack_traces(out)
     out = simplify_warnings(out)
     out = remove_timings(out)

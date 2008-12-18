@@ -191,7 +191,7 @@ the fixtures *are not reentrant*. A module such as this *must not* be
 marked `_multiprocess_can_split_`, or tests will fail in one or more
 runner processes as fixtures are re-executed.
 
-    >>> sh('nosetests -v --processes=2 ' + test_can_split) #doctest: +ELLIPSIS +REPORT_NDIFF
+    >>> sh('nosetests -v --processes=2 ' + test_can_split) #doctest: +ELLIPSIS
     setup called
     ...
     test_can_split....
