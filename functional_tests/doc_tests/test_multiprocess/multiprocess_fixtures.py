@@ -24,7 +24,6 @@ def setup_module():
         raise SkipTest("subprocess module not available")
 
 
-
 def globs(globs):
     globs.update({'sh': sh})
     return globs
