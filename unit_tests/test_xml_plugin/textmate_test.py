@@ -9,7 +9,7 @@ import unittest
 
 from cStringIO import StringIO
 
-from nosexml import TextMateFormatter
+from nose.plugins.xml import TextMateFormatter
 
 #This is obviously poor testing, but I'm not that concerned about
 #thoroughly testing formatters other than to make sure they don't throw.

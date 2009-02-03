@@ -17,7 +17,7 @@ except ImportError:
 from nose.plugins.capture import Capture
 from nose.plugins import PluginTester
 
-from nosexml import NoseXML, NullRedirect, PrettyPrintFormatter
+from nose.plugins.xml import NoseXML, NullRedirect, PrettyPrintFormatter
 
 class TestNullRedirect(unittest.TestCase):
     def test_basic(self):
@@ -54,7 +54,7 @@ class TestPreConfiguredNoseXML(unittest.TestCase):
             pass
         opts = Foo()
         opts.xml_enabled = True
-        opts.xml_formatter = 'nosexml.PrettyPrintFormatter'
+        opts.xml_formatter = 'nose.plugins.xml.PrettyPrintFormatter'
         opts.xml_capture_stderr = True
         self.pi.configure( opts, {} )
         self.assertEqual( self.pi.enabled, True )
@@ -76,7 +76,7 @@ class TestPostConfiguredNoseXML(unittest.TestCase):
             pass
         opts = Foo()
         opts.xml_enabled = True
-        opts.xml_formatter = 'nosexml.PrettyPrintFormatter'
+        opts.xml_formatter = 'nose.plugins.xml.PrettyPrintFormatter'
         opts.xml_capture_stderr = True
         self.pi.configure( opts, {} )
 
@@ -102,7 +102,8 @@ class TestStreamSetNoseXML(unittest.TestCase):
             pass
         opts = Foo()
         opts.xml_enabled = True
-        opts.xml_formatter = 'test.plugin_test.TestFormatter'
+        # hmm, need a known import path to test formatter discovery:
+        opts.xml_formatter = 'test_xml_plugin.plugin_test.TestFormatter'
         opts.xml_capture_stderr = True
         self.pi.configure( opts, {} )
 

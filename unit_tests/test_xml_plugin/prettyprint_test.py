@@ -7,7 +7,7 @@ This file is part of nosexml, which is released under the MIT license.
 import sys
 import unittest
 
-from nosexml import PrettyPrintFormatter
+from nose.plugins.xml import PrettyPrintFormatter
 
 from cStringIO import StringIO
 

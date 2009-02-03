@@ -6,7 +6,7 @@ This file is part of nosexml, which is released under the MIT license.
 
 import unittest
 
-from nosexml import XMLFormatter
+from nose.plugins.xml import XMLFormatter
 
 from cStringIO import StringIO
 
