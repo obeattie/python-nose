@@ -2,6 +2,10 @@
 
 """Test the copy of nose in this directory, by running that nose against itself.
 
+NOTE: Before this will work you have to *at least* run::
+    
+    $ python setup.py egg_info
+
 You can test nose using nose in other ways, but if you don't use this script,
 you might have one installation of nose testing another installation, which is
 not supported.
@@ -36,7 +40,7 @@ if __name__ == "__main__":
     else:
         env = pkg_resources.Environment(search_path=[this_dir])
         distributions = env["nose"]
-        assert len(distributions) == 1
+        assert len(distributions) == 1, "Unexpected: %s" % distributions
         dist = distributions[0]
         dist.activate()
     import nose
