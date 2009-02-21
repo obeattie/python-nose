@@ -6,19 +6,18 @@ try:
         packages = find_packages(),
         entry_points = {        
         'console_scripts': [
-            'nosetests = nose:run_exit'
+            'nosetests3 = nose:run_exit'
             ],
         'distutils.commands': [
-            ' nosetests = nose.commands:nosetests'
+            'nosetests3 = nose.commands:nosetests'
             ],
-        },
-        test_suite = 'nose.collector',
+        }
         )
 except ImportError:
     from distutils.core import setup
     addl_args = dict(
         packages = ['nose', 'nose.ext', 'nose.plugins'],
-        scripts = ['bin/nosetests']
+        scripts = ['bin/nosetests3']
         )
     
 setup(
