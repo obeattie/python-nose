@@ -62,7 +62,6 @@ try:
 except ImportError:
     from io import StringIO
 import sys
-import builtins
 
 log = logging.getLogger(__name__)
 

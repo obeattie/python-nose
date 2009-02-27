@@ -108,21 +108,21 @@ class TextTestResult(_TextTestResult):
         if formatted is not None:
             err = formatted
         plugins.addFailure(_case, err)
-        super().addFailure(test, err)
+        super(TextTestResult, self).addFailure(test, err)
         if self.config.stopOnError:
             self.shouldStop = True
     
     def addSuccess(self, test):
         self.config.plugins.addSuccess(self._case(test))
-        super().addSuccess(test)
+        super(TextTestResult, self).addSuccess(test)
 
     def startTest(self, test):
         self.config.plugins.startTest(self._case(test))
-        super().startTest(test)
+        super(TextTestResult, self).startTest(test)
     
     def stopTest(self, test):
         self.config.plugins.stopTest(self._case(test))
-        super().stopTest(test)
+        super(TextTestResult, self).stopTest(test)
 
     def printErrors(self):
         """Overrides to print all errorClasses errors as well.

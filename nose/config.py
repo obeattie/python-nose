@@ -3,7 +3,7 @@ import optparse
 import os
 import re
 import sys
-import configparser
+from nose.compat import configparser
 from optparse import OptionParser
 from nose.util import absdir, tolist
 from nose.plugins.manager import NoPlugins

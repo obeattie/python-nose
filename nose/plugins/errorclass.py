@@ -125,8 +125,8 @@ class ErrorClass(object):
     def __iter__(self):
         return iter(self.errorClasses)
 
-
-class ErrorClassPlugin(Plugin, metaclass=MetaErrorClass):
+    
+class _ErrorClassPlugin(Plugin):
     score = 1000
     errorClasses = ()
 
@@ -147,7 +147,9 @@ class ErrorClassPlugin(Plugin, metaclass=MetaErrorClass):
                 setattr(result, storage_attr, storage)
                 result.errorClasses[cls] = (storage, label, isfail)
 
-
+# metaclassing compatible with 2 and 3
+ErrorClassPlugin = MetaErrorClass('ErrorClassPlugin', (_ErrorClassPlugin, ), {})
+                
     
 if __name__ == '__main__':
     import doctest
