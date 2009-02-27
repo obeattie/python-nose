@@ -1,7 +1,7 @@
 import logging
 import unittest
 from traceback import format_tb
-
+from nose.compat import reraise
 log = logging.getLogger(__name__)
 
 
@@ -23,7 +23,7 @@ class Failure(unittest.TestCase):
             getattr(self.exc_class, '__name__', self.exc_class), self.exc_val)
 
     def runTest(self):
-        if self.tb is not None:            
-            raise self.exc_class(self.exc_val).with_traceback(self.tb)
+        if self.tb is not None:
+            reraise(self.exc_class, self.exc_val, self.tb)
         else:
             raise self.exc_class(self.exc_val)
