@@ -1,8 +1,9 @@
+from __future__ import print_function
 import unittest
 from nose.config import Config
 from nose.plugins.deprecated import Deprecated, DeprecatedTest
 from nose.result import TextTestResult
-from io import StringIO
+from nose.compat import StringIO
 from optparse import OptionParser
 
 

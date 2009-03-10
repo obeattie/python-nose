@@ -8,11 +8,11 @@ import re
 import sys
 import types
 import unittest
+from nose.compat import class_types
 
 log = logging.getLogger('nose')
 
 ident_re = re.compile(r'^[A-Za-z_][A-Za-z0-9_.]*$')
-class_types = (type,)
 skip_pattern = r"(?:\.svn)|(?:[^.]+\.py[co])|(?:.*~)|(?:.*\$py\.class)"
 
 def ls_tree(dir_path="",
@@ -387,7 +387,8 @@ def test_address(test):
         file = getattr(test, '__file__', None)
         module = getattr(test, '__name__', None)
         return (file, module, call)
-    if t == types.FunctionType or issubclass(t, type) or t == type:
+    if (t == types.FunctionType or issubclass(t, type) or t == type
+        or isclass(test)):
         module = getattr(test, '__module__', None)
         if module is not None:
             m = sys.modules[module]

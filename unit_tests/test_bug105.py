@@ -1,6 +1,6 @@
+from __future__ import print_function
 import os
 import unittest
-from nose.compat import prt
 
 class TestBug105(unittest.TestCase):
 
@@ -12,7 +12,7 @@ class TestBug105(unittest.TestCase):
 
         l = TestLoader()
         testmod = next(l.loadTestsFromDir(where))
-        prt(testmod)
+        print(testmod)
         testmod.setUp()
 
         def fix(t):
@@ -22,7 +22,7 @@ class TestBug105(unittest.TestCase):
             return s
         
         tests = list(map(fix, testmod))
-        prt(tests)
+        print(tests)
         self.assertEqual(tests, ['tests.test_z', 'tests.test_a',
                                  'tests.test_dz', 'tests.test_mdz',
                                  'tests.test_b'])

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import unittest
 import pdb
 import sys
@@ -37,9 +38,12 @@ class TestNoseCases(unittest.TestCase):
             def __new__(cls, name, bases, dct):
                 return type.__new__(cls, name, bases, dct)
         a = []
-        class TestClass(object, metaclass=TestType):
+        
+        class TestClass(object):
             def test_func(self, a=a):
                 a.append(1)
+        # 2/3 compatible metaclassing
+        TestClass = TestType('TestClass', (TestClass,), {})
 
         case = nose.case.MethodTestCase(TestClass.test_func, cls=TestClass)
         case(res)

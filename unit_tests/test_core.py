@@ -1,10 +1,11 @@
+from __future__ import print_function
 import sys
 import unittest
-from io import StringIO
 from optparse import OptionParser
 import nose.core
 from nose.config import Config
 from nose.tools import set_trace
+from nose.compat import StringIO
 from mock import Bucket, MockOptParser
 
 
