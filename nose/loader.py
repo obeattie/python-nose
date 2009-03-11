@@ -508,6 +508,16 @@ class TestLoader(unittest.TestLoader):
                 return self.loadTestsFromGenerator(obj, parent)
             else:
                 return FunctionTestCase(obj)
+        elif ismethod(obj):
+            if parent is None:
+                parent = obj.__class__
+            if issubclass(parent, unittest.TestCase):
+                return parent(obj.__name__)
+            else:
+                if isgenerator(obj):
+                    return self.loadTestsFromGeneratorMethod(obj, parent)
+                else:
+                    return MethodTestCase(obj, cls=parent)
         else:
             return Failure(TypeError,
                            "Can't make a test from %s" % obj)
