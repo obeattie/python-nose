@@ -13,6 +13,9 @@ log = logging.getLogger(__name__)
 log.debug("imported")
 
 class CollectOnly(Plugin):
+    """
+    Collect and output test names only, don't run any tests. 
+    """
     name = "collect-only"
     enableOpt = 'collect_only'
     
