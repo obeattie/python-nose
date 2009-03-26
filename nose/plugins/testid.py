@@ -31,6 +31,47 @@ Then you can rerun individual tests by supplying just the id numbers::
   
 Since most shells consider '#' a special character, you can leave it out when
 specifying a test id.
+
+Looping over failed tests
+-------------------------
+
+This plugin also adds a mode where it will direct the test run to record
+failed tests, and on subsequent runs, include only the tests that failed the
+last time. Activate this mode with the --failed switch:
+
+ % nosetests -v --failed
+ #1 test.test_a ... ok
+ #2 test.test_b ... ERROR
+ #3 test.test_c ... FAILED
+ #4 test.test_d ... ok
+ 
+And on the 2nd run, only tests #2 and #3 will run:
+
+ % nosetests -v --failed
+ #2 test.test_b ... ERROR
+ #3 test.test_c ... FAILED
+
+Then as you correct errors and tests pass, they'll drop out of subsequent
+runs.
+
+ % nosetests -v --failed
+ #2 test.test_b ... ok
+ #3 test.test_c ... FAILED
+
+ % nosetests -v --failed
+ #3 test.test_c ... FAILED
+
+Until finally when all tests pass, the full set will run again on the next
+invocation.
+
+ % nosetests -v --failed
+ #3 test.test_c ... ok
+
+ % nosetests -v --failed
+ #1 test.test_a ... ok
+ #2 test.test_b ... ok
+ #3 test.test_c ... ok
+ #4 test.test_d ... ok
 """
 __test__ = False
 
@@ -91,6 +132,8 @@ class TestId(Plugin):
         self._seen = {}
 
     def finalize(self, result):
+        if result.wasSuccessful():
+            self.failed = []
         if self.collecting:
             ids = dict(zip(self.tests.values(), self.tests.keys()))
         else:
@@ -128,6 +171,7 @@ class TestId(Plugin):
         if self.loopOnFailed and self.failed:
             self.collecting = False
             names = self.failed
+            self.failed = []
         result = (None, map(self.tr, names))
         if not self.collecting:
             # got some ids in names, so make sure that the ids line
@@ -165,7 +209,9 @@ class TestId(Plugin):
     def afterTest(self, test):
         # None means test never ran, False means failed/err
         if test.passed is False:
-            self.failed.append(str(self.tests[test.address()]))
+            key = str(self.tests[test.address()])
+            if key not in self.failed:
+                self.failed.append(key)
         
     def tr(self, name):
         log.debug("tr '%s'", name)
