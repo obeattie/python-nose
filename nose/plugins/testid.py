@@ -37,7 +37,7 @@ Looping over failed tests
 
 This plugin also adds a mode where it will direct the test run to record
 failed tests, and on subsequent runs, include only the tests that failed the
-last time. Activate this mode with the --failed switch:
+last time. Activate this mode with the --failed switch::
 
  % nosetests -v --failed
  #1 test.test_a ... ok
@@ -45,7 +45,7 @@ last time. Activate this mode with the --failed switch:
  #3 test.test_c ... FAILED
  #4 test.test_d ... ok
  
-And on the 2nd run, only tests #2 and #3 will run:
+And on the 2nd run, only tests #2 and #3 will run::
 
  % nosetests -v --failed
  #2 test.test_b ... ERROR
@@ -54,9 +54,13 @@ And on the 2nd run, only tests #2 and #3 will run:
 Then as you correct errors and tests pass, they'll drop out of subsequent
 runs.
 
+First::
+
  % nosetests -v --failed
  #2 test.test_b ... ok
  #3 test.test_c ... FAILED
+
+Second::
 
  % nosetests -v --failed
  #3 test.test_c ... FAILED
@@ -64,9 +68,13 @@ runs.
 Until finally when all tests pass, the full set will run again on the next
 invocation.
 
+First::
+
  % nosetests -v --failed
  #3 test.test_c ... ok
 
+Second::
+ 
  % nosetests -v --failed
  #1 test.test_a ... ok
  #2 test.test_b ... ok
@@ -93,7 +101,8 @@ class TestId(Plugin):
     Activate to add a test id (like #1) to each test name output. After
     you've run once to generate test ids, you can re-run individual
     tests by activating the plugin and passing the ids (with or
-    without the # prefix) instead of test names.
+    without the # prefix) instead of test names. Activate with --failed
+    to rerun failing tests only.
     """
     name = 'id'
     idfile = None
@@ -107,7 +116,7 @@ class TestId(Plugin):
                           help="Store test ids found in test runs in this "
                           "file. Default is the file .noseids in the "
                           "working directory.")
-        parser.add_option('--failed', '--loop', action='store_true',
+        parser.add_option('--failed', action='store_true',
                           dest='failed', default=False,
                           help="Run the tests that failed in the last "
                           "test run.")
@@ -165,13 +174,13 @@ class TestId(Plugin):
         except IOError:
             log.debug('IO error reading %s', self.idfile)
             return
-            
-        # I don't load any tests myself, only translate names like '#2'
-        # into the associated test addresses
+
         if self.loopOnFailed and self.failed:
             self.collecting = False
             names = self.failed
             self.failed = []
+        # I don't load any tests myself, only translate names like '#2'
+        # into the associated test addresses
         result = (None, map(self.tr, names))
         if not self.collecting:
             # got some ids in names, so make sure that the ids line

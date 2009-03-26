@@ -30,10 +30,6 @@ std_info = {
 to_write = []
 
 
-def defining_class(cls, attr):
-    from epydoc.objdoc import _lookup_class_field
-    val, container = _lookup_class_field(cls, attr)
-    return container.value()
 
 
 def write(filename, tpl, ctx):
@@ -253,7 +249,7 @@ def document_class(cls):
             html.append('<h3>Methods</h3>')
             for method in methods:
                 print "    %s" % method.qualified_name()
-                defined_in = defining_class(real_class, method.name)
+                defined_in = real_class # FIXME
                 if defined_in == real_class:
                     inherited = ''
                     inh_cls = ''
@@ -277,7 +273,7 @@ def document_class(cls):
             html.append('<h3>Attributes</h3>')
             for attr in attrs:
                 print "    a %s" % attr.qualified_name()
-                defined_in = defining_class(real_class, attr.name)
+                defined_in = real_class # FIXME 
                 if defined_in == real_class:
                     inherited = ''
                     inh_cls = ''

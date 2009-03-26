@@ -1,7 +1,13 @@
 """
-FIXME!
+This plugin bypasses the actual execution of tests, instead just collecting
+test names. Fixtures are also bypassed, so execution should be very quick.
 
+This plugin is useful in combination with the testid plugin (--with-id). Run
+both together to get an indexed list of all tests that will enable you to run
+individual tests by index number.
 
+This plugin is also useful for counting tests in a test suite, and making
+people watching your demo think all of your tests pass.
 """
 from nose.plugins.base import Plugin
 from nose.case import Test
@@ -51,7 +57,7 @@ class CollectOnly(Plugin):
 
 class TestSuiteFactory:
     """
-    Factory for producing configure test suites.
+    Factory for producing configured test suites.
     """
     def __init__(self, conf):
         self.conf = conf
