@@ -26,8 +26,6 @@ class PluginTester(object):
     executed with your plugin so that during an actual test you can inspect the 
     artifacts of how your plugin interacted with the stub test suite.
     
-    Class Variables
-    ---------------
     - activate
     
       - the argument to send nosetests to activate the plugin

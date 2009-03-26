@@ -1,0 +1,59 @@
+{% extends "!defindex.html" %}
+
+{% block sidebar1 %}{{ sidebar() }}{% endblock %}
+{% block sidebar2 %}
+
+<div id="menu">
+  <h2><a href="/mrl/projects/nose/nose-{{ version }}.tar.gz">Download</a></h2>
+  <p>Current version: {{ version }} <br />({{ last_updated }})</p>
+            
+  <h2>Install</h2>
+  <p>Current version: <br /><tt>easy_install nose=={{ version }}</tt></p>
+  <p>Unstable (trunk): <br /><tt>easy_install nose==dev</tt></p>
+  
+  <h2>Read</h2>
+  <ul>
+    <li>
+      <a href="http://code.google.com/p/python-nose/w/list">
+        Wiki
+      </a>
+    </li>
+    <li>
+      <a href="doc/">API docs <span class="new">NEW</span></a>
+    </li>
+    <li>
+      <a href="http://ivory.idyll.org/articles/nose-intro.html">
+        An Extended Introduction to the nose Unit Testing Framework
+      </a>
+      <br />Titus Brown's excellent article provides a great overview of
+  nose and itself uses.
+    </li>
+    <li><a href="#usage">nosetests usage</a>
+      <br />How to use the command-line test runner.
+    </li>
+  </ul>
+  
+  <h2><a href="http://groups.google.com/group/nose-announce">
+      Announcement list</a></h2>
+  <p>Sign up to receive email announcements
+    of new releases</p>
+  
+  <h2><a href="http://code.google.com/p/python-nose/">Tracker</a></h2>
+  <p>Report bugs, request features, wik the wiki, browse source.</p>
+  
+  <h2>Get the code</h2>
+  <p><tt>svn co http://python-nose.googlecode.com/svn/trunk/ nose</tt></p>
+  
+  <h2>Other links</h2>
+  <ul>
+    <li><a href="/mrl/">My blog</a></li>
+    <li>
+      <a href="http://codespeak.net/py/current/doc/test.html">py.test</a>
+    </li>
+    <li>
+      <a href="http://peak.telecommunity.com/DevCenter/setuptools">
+        setuptools</a>
+    </li>
+  </ul>
+</div>
+{% endblock %}
