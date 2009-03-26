@@ -46,6 +46,7 @@ except ImportError:
 
 log = logging.getLogger(__name__)
 
+
 class TestId(Plugin):
     """
     Activate to add a test id (like #1) to each test name output. After
@@ -55,7 +56,8 @@ class TestId(Plugin):
     """
     name = 'id'
     idfile = None
-    shouldSave = True
+    collecting = True
+    loopOnFailed = False
     
     def options(self, parser, env):
         Plugin.options(self, parser, env)
@@ -64,9 +66,17 @@ class TestId(Plugin):
                           help="Store test ids found in test runs in this "
                           "file. Default is the file .noseids in the "
                           "working directory.")
+        parser.add_option('--failed', '--loop', action='store_true',
+                          dest='failed', default=False,
+                          help="Run the tests that failed in the last "
+                          "test run.")
 
     def configure(self, options, conf):
         Plugin.configure(self, options, conf)
+        if options.failed:
+            self.enabled = True
+            self.loopOnFailed = True
+            log.debug("Looping on failed tests")
         self.idfile = os.path.expanduser(options.testIdFile)
         if not os.path.isabs(self.idfile):
             self.idfile = os.path.join(conf.workingDir, self.idfile)
@@ -75,18 +85,21 @@ class TestId(Plugin):
         # tests are {test address: id}
         self.ids = {}
         self.tests = {}
+        self.failed = []
         # used to track ids seen when tests is filled from
         # loaded ids file
         self._seen = {}
 
     def finalize(self, result):
-        if self.shouldSave:
-            fh = open(self.idfile, 'w')
-            # save as {id: test address}
-            ids = dict(zip(self.tests.values(), self.tests.keys()))            
-            dump(ids, fh)
-            fh.close()
-            log.debug('Saved test ids: %s to %s', ids, self.idfile)
+        if self.collecting:
+            ids = dict(zip(self.tests.values(), self.tests.keys()))
+        else:
+            ids = self.ids
+        fh = open(self.idfile, 'w')
+        dump({'ids': ids, 'failed': self.failed}, fh)
+        fh.close()
+        log.debug('Saved test ids: %s, failed %s to %s',
+                  ids, self.failed, self.idfile)
 
     def loadTestsFromNames(self, names, module=None):
         """Translate ids in the list of requested names into their
@@ -95,8 +108,16 @@ class TestId(Plugin):
         log.debug('ltfn %s %s', names, module)
         try:
             fh = open(self.idfile, 'r')
-            self.ids = load(fh)
-            log.debug('Loaded test ids %s from %s', self.ids, self.idfile)
+            data = load(fh)
+            if 'ids' in data:
+                self.ids = data['ids']
+                self.failed = data['failed']
+            else:
+                # old ids field
+                self.ids = data
+                self.failed = []
+            log.debug('Loaded test ids %s/failed %s from %s',
+                      self.ids, self.failed, self.idfile)
             fh.close()
         except IOError:
             log.debug('IO error reading %s', self.idfile)
@@ -104,8 +125,11 @@ class TestId(Plugin):
             
         # I don't load any tests myself, only translate names like '#2'
         # into the associated test addresses
+        if self.loopOnFailed and self.failed:
+            self.collecting = False
+            names = self.failed
         result = (None, map(self.tr, names))
-        if not self.shouldSave:
+        if not self.collecting:
             # got some ids in names, so make sure that the ids line
             # up in output with what I said they were last time
             self.tests = dict(zip(self.ids.values(), self.ids.keys()))
@@ -128,7 +152,7 @@ class TestId(Plugin):
     def startTest(self, test):
         adr = test.address()
         if adr in self.tests:
-            if self.shouldSave or adr in self._seen:
+            if self.collecting or adr in self._seen:
                 self.stream.write('   ')
             else:
                 self.stream.write('#%s ' % self.tests[adr])
@@ -138,6 +162,11 @@ class TestId(Plugin):
         self.stream.write('#%s ' % self.id)
         self.id += 1
 
+    def afterTest(self, test):
+        # None means test never ran, False means failed/err
+        if test.passed is False:
+            self.failed.append(str(self.tests[test.address()]))
+        
     def tr(self, name):
         log.debug("tr '%s'", name)
         try:
@@ -145,7 +174,9 @@ class TestId(Plugin):
         except ValueError:
             return name
         log.debug("Got key %s", key)
-        self.shouldSave = False
+        # I'm running tests mapped from the ids file,
+        # not collecting new ones
+        self.collecting = False
         if key in self.ids:
             return self.makeName(self.ids[key])
         return name
