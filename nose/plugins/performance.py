@@ -13,7 +13,8 @@ from collections import defaultdict
 
 from nose.plugins import Plugin
 
-log = logging.getLogger('nose.plugins.attrib')
+log = logging.getLogger('nose.plugins.performance')
+
 
 class Performance(Plugin): 
     
