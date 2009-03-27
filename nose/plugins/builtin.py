@@ -12,6 +12,7 @@ builtins = (
     ('nose.plugins.doctests', 'Doctest'),
     ('nose.plugins.isolate', 'IsolationPlugin'),
     ('nose.plugins.failuredetail', 'FailureDetail'),
+    ('nose.plugins.performance', 'Performance'),
     ('nose.plugins.prof', 'Profile'),
     ('nose.plugins.skip', 'Skip'),
     ('nose.plugins.testid', 'TestId'),
