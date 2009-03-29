@@ -16,27 +16,32 @@ from nose.plugins import Plugin
 log = logging.getLogger('nose.plugins.performance')
 
 
-class Performance(Plugin): 
+class Performance(Plugin):
+    
+    iters = 'iters'
     
     def __init__(self):
         Plugin.__init__(self)
-        self._start_time = defaultdict(list)
-        self._stop_time = defaultdict(list)
-        self.iters = 10
-        self.enableOpt = '--performance'
+        self._startTime = defaultdict(list)
+        self._stopTime = defaultdict(list)
         
     def options(self, parser, env=os.environ):
-        Plugin.options(self, parser, env)
+        parser.add_option("--performance",
+                          action="store_true",
+                          dest=self.enableOpt,
+                          default=False,
+                          help="Run performance tests")
         parser.add_option("--iters",
-                          dest="iters", action="store",
-                          default=env.get('NOSE_ITERS', 10),
+                          dest='iters', 
+                          action="store",
+                          type='int',
+                          default=env.get('NOSE_PERFORMANCE_ITERS', 10),
                           help="Number of times to run a performance test (default 10)"
-                          "specified by ITERS [NOSE_ITERS]")
+                          "specified by ITERS [NOSE_PERFORMANCE_ITERS]")
 
     def configure(self, options, config):
         Plugin.configure(self, options, config)
-        if hasattr (options, 'iters'):
-            self.iters = int(options.iters)
+        self.iters = options.iters
 
     def wantFunction(self, function):
         return function.__name__.startswith('perf')
@@ -45,10 +50,10 @@ class Performance(Plugin):
         return method.__name__.startswith('perf')
         
     def startTest(self, test):
-        self._start_time[str(test)].append(time.time())
+        self._startTime[str(test)].append(time.time())
     
     def stopTest(self, test):
-        self._stop_time[str(test)].append(time.time())
+        self._stopTime[str(test)].append(time.time())
 
     def loadTestsFromNames(self, names, module=None):
         """Yield tests multiple times
@@ -57,6 +62,7 @@ class Performance(Plugin):
         def iterated():
             for name in names:      
                 for test in loader.loadTestsFromName(name, module=module):
+                    print self.iters
                     for iter_ in range(self.iters):
                         yield test
         return (loader.suiteClass(iterated), [])
@@ -67,22 +73,16 @@ class Performance(Plugin):
         self.loader = loader
 
     def report(self, stream):
-        total_time = 0
-        no_tests = 0
         stream.write('-' * 70 + '\n')
         stream.write('Test Name\tMin time\tAvg time\tMax time\n')
         
-        for test in self._start_time:
-            time_taken = [(stop-start) for (stop, start) in 
-                            zip(self._stop_time[test], self._start_time[test])]
-            avg_time_taken = sum(time_taken)/len(time_taken)
+        for test in self._startTime:
+            timeTaken = [(stop-start) for (stop, start) in 
+                            zip(self._stopTime[test], self._startTime[test])]
+            avgTimeTaken = sum(timeTaken)/len(timeTaken)
             stream.write("%s\t%.3fs\t%.3fs\t%.3fs\n" % (test, 
-                        min(time_taken), avg_time_taken, max(time_taken)))
-            no_tests += 1
-            total_time += sum(time_taken)
+                        min(timeTaken), avgTimeTaken, max(timeTaken)))
         
-        stream.write('.' * 70 + '\n')
-        stream.write('Ran %s * %s performance tests in %.3fs\n' % (no_tests, self.iters, total_time))
         
         # prevent other output
         return 1
