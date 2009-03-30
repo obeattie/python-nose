@@ -26,6 +26,8 @@ class Performance(Plugin):
         self._stopTime = defaultdict(list)
         
     def options(self, parser, env=os.environ):
+        """Setup plugin options
+        """
         parser.add_option("--performance",
                           action="store_true",
                           dest=self.enableOpt,
@@ -40,19 +42,29 @@ class Performance(Plugin):
                           "specified by ITERS [NOSE_PERFORMANCE_ITERS]")
 
     def configure(self, options, config):
+        """Configure plugin
+        """
         Plugin.configure(self, options, config)
         self.iters = options.iters
 
     def wantFunction(self, function):
+        """This plugin wants all functions that start with 'perf'
+        """
         return function.__name__.startswith('perf')
         
     def wantMethod(self, method):
+        """This plugin wants all methods that start with 'perf'
+        """
         return method.__name__.startswith('perf')
         
     def startTest(self, test):
+        """Record the start time for each test
+        """
         self._startTime[str(test)].append(time.time())
     
     def stopTest(self, test):
+        """Record the stop time for each test
+        """
         self._stopTime[str(test)].append(time.time())
 
     def loadTestsFromNames(self, names, module=None):
@@ -62,7 +74,6 @@ class Performance(Plugin):
         def iterated():
             for name in names:      
                 for test in loader.loadTestsFromName(name, module=module):
-                    print self.iters
                     for iter_ in range(self.iters):
                         yield test
         return (loader.suiteClass(iterated), [])
@@ -73,10 +84,12 @@ class Performance(Plugin):
         self.loader = loader
 
     def report(self, stream):
+        """Write the performance report to a stream
+        """
         stream.write('-' * 70 + '\n')
         stream.write('Test Name\tMin time\tAvg time\tMax time\n')
         
-        for test in self._startTime:
+        for test in sorted(self._startTime):
             timeTaken = [(stop-start) for (stop, start) in 
                             zip(self._stopTime[test], self._startTime[test])]
             avgTimeTaken = sum(timeTaken)/len(timeTaken)

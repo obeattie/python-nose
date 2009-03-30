@@ -20,3 +20,4 @@ class TestPerformancePlugin(PluginTester, unittest.TestCase):
         assert 'perf_method (test_perf.PerformanceTest)' in self.output
         assert 'test_perf.perf_function' in self.output
         assert 'Ran 10 tests in' in self.output
+
